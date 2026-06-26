@@ -225,7 +225,7 @@
 
   <div class="scn-head">
     <h2>Acquisition Scenarios — Path to ≥ 2M € EBITDA by end-2028</h2>
-    <div class="ph">Mandate: acquire 2M–4M € EBITDA across 2027–2028. EBT ≈ 70% of EBITDA, so the target equals <strong>1.4M–2.8M € of cumulative EBT</strong> from the pipeline. Five routes: two single-network anchors (ScanExpert, Dorna Medical) and three portfolio builds.</div>
+    <div class="ph">Mandate: acquire <strong>≥ 2M € EBITDA</strong> across 2027–2028 — no upper cap, the more the better. EBT ≈ 70% of EBITDA, so this means <strong>≥ 1.4M € of cumulative EBT</strong> from the pipeline. Five routes: two single-network anchors (ScanExpert, Dorna Medical) and three portfolio builds.</div>
   </div>
   <div class="tabs" id="scnTabs">
     <button class="tab active" data-scn="all">Compare all</button>
@@ -372,7 +372,7 @@ document.getElementById('recs').innerHTML = RECS.map((r,i)=>`
 const EBITDA_F = 1/0.7;                  // EBT ≈ 70% of EBITDA  →  EBITDA = EBT / 0.7
 const TARGET_MIN = 2_000_000, TARGET_MAX = 4_000_000;
 const SCN = [
- {tag:'0.1 · 1 deal · network', name:'ScanExpert anchor', desc:'Single buy of the pipeline’s top-scored network (95/100): 8 sites across Iași, Galați, Brașov +5. Its 3.5M € EBT alone overshoots the whole mandate — but Medima already overlaps several of these cities.',
+ {tag:'0.1 · 1 deal · network', name:'ScanExpert anchor', desc:'Single buy of the pipeline’s top-scored network (95/100): 8 sites across Iași, Galați, Brașov +5. Its 3.5M € EBT delivers ~5M EBITDA on its own — the single largest play, clearing the target outright — though Medima already overlaps several of these cities.',
   deals:[['2027','Scanexpert']]},
  {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). High revenue (16.2M €) but a razor-thin 2.1% margin and 26× debt/EBT — on its own it lands far below the 2M EBITDA floor.',
   deals:[['2027','Dorna Medical']]},
@@ -395,16 +395,15 @@ function buildCard(s){
   const ebitda=ebt*EBITDA_F, pct=Math.min(100,ebitda/TARGET_MAX*100);
   const n=s.deals.length, dl=`${n} deal${n>1?'s':''}`;
   let status;
-  if(ebitda<TARGET_MIN)      status=`<div class="ok" style="color:var(--neg)">✗ ${((TARGET_MIN-ebitda)/1e6).toFixed(2)}M short of the 2M floor · ${dl}</div>`;
-  else if(ebitda>TARGET_MAX) status=`<div class="ok" style="color:var(--warn)">⚠ clears 2M floor but ${(ebitda/1e6).toFixed(2)}M exceeds the 4M cap · ${dl}</div>`;
-  else                       status=`<div class="ok">✓ ${(ebitda/1e6).toFixed(2)}M ≥ 2M minimum · ${dl}</div>`;
+  if(ebitda<TARGET_MIN) status=`<div class="ok" style="color:var(--neg)">✗ ${((TARGET_MIN-ebitda)/1e6).toFixed(2)}M short of the 2M floor · ${dl}</div>`;
+  else                  status=`<div class="ok">✓ ${(ebitda/1e6).toFixed(2)}M ≥ 2M floor · ${dl}</div>`;
   return `<div class="scn">
     <div class="sh"><span class="tag">${s.tag}</span><h3>${s.name}</h3><p>${s.desc}</p></div>
     <div class="deals">${rows}</div>
     <div class="tot">
       <div class="big">${(ebitda/1e6).toFixed(2)}M <small>EBITDA · ${(ebt/1e6).toFixed(2)}M EBT</small></div>
       <div class="band"><i style="width:${pct}%"></i><span class="min"></span></div>
-      <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">2M floor</span><span>4M cap</span></div>
+      <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">2M floor</span><span>4M+</span></div>
       ${status}
     </div></div>`;
 }
