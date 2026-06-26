@@ -192,10 +192,10 @@
         <th data-k="cities" class="l">Cities</th>
         <th data-k="loc">Loc</th>
         <th data-k="rev">Rev 2025</th>
+        <th data-k="revG">Avg Rev Gr.</th>
         <th data-k="ebt">Gross Profit 2025</th>
         <th data-k="ebitda">EBITDA 2025</th>
         <th data-k="margin">EBITDA Margin</th>
-        <th data-k="revG">Avg Rev Gr.</th>
         <th data-k="debt">Debt/GP</th>
         <th data-k="overlap">Overlap</th>
       </tr></thead>
@@ -235,8 +235,8 @@
 // cui = verified fiscal code (provenance). t: 'network' | 'single'. overlap: true/false. missing: no usable filing.
 const D = [
  // ---- NETWORKS (multi-city) ----
- {t:'network',name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,overlap:true,cui:24158114,ef:0.6,y:[[36992156,7776362,43056349],[61357073,17302502,35260050],[87376181,27368484,49327882]]},
- {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,ef:0.6,y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
+ {t:'network',name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,overlap:true,cui:24158114,ef:0.8,y:[[36992156,7776362,43056349],[61357073,17302502,35260050],[87376181,27368484,49327882]]},
+ {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,ef:0.8,y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
  {t:'network',name:'Memormed',cities:'București – Unirii, Bd. A.I. Cuza, Cotroceni +2',loc:5,overlap:true,flag:'Outpatients',cui:23052971,y:[[22051094,1832111,7220046],[29821469,2741582,5337567],[32108322,1493228,11853536]]},
  {t:'network',name:'Dorna Medical',cities:'Vatra Dornei, Fălticeni, Rădăuți +4',loc:7,overlap:false,cui:15978905,y:[[61886645,291222,22233897],[79157281,1660680,43835261],[93150095,9680943,36846145]]},
  {t:'network',name:'Raze Medical Center',cities:'Oradea',loc:2,overlap:true,cui:45331268,y:[[1584041,-210068,1072960],[3809728,650397,536137],[7702192,533624,2831605]]},
@@ -506,10 +506,10 @@ function render(){
       <td class="l cities">${d.cities}</td>
       <td>${d.loc}</td>
       <td>${fmtMoney(d.rev)}</td>
+      <td>${na?'—':fmtPct(d.revG)}</td>
       <td class="${ebtCls}">${fmtMoney(d.ebt)}</td>
       <td title="${ebm?ebm.long:''}">${d.ebitda==null?'—':fmtMoney(d.ebitda)}${ebm?`<small style="display:block;color:var(--muted);font-size:9px;font-weight:400">${ebm.short}</small>`:''}</td>
       <td>${pctOrDash(ebMargin(d),1)}</td>
-      <td>${na?'—':fmtPct(d.revG)}</td>
       <td>${fmtDebt(d.debt,na)}</td>
       <td>${ov}</td></tr>`;
   }).join('');
