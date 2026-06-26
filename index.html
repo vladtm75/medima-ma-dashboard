@@ -234,6 +234,7 @@
     <button class="tab" data-scn="2">1 · Anchor</button>
     <button class="tab" data-scn="3">2 · Balanced</button>
     <button class="tab" data-scn="4">3 · No-overlap</button>
+    <button class="tab" data-scn="5">4 · Small clinics</button>
   </div>
   <div class="scns" id="scns"></div>
 
@@ -382,6 +383,8 @@ const SCN = [
   deals:[['2027','Lotus Image'],['2027','Recumed'],['2028','Romrad']]},
  {tag:'5 deals · whitespace', name:'No-overlap expansion', desc:'Five smaller targets in cities with no Medima presence (from the priority list). Maximises geographic footprint per euro.',
   deals:[['2027','DoinaMed'],['2027','Natisan Medicina Generala'],['2027','RMN Imagistica'],['2028','Tonic Medical Center'],['2028','Clubul Sănătății']]},
+ {tag:'6 deals · small clinics', name:'Small-clinic roll-up', desc:'Six small but profitable single-city clinics — all ≤ 1.3M € revenue — bundled to clear the 2M floor with no large transaction. Smallest ticket per deal, highest execution count, spread across six towns.',
+  deals:[['2027','Romrad'],['2027','Victoria Imagistic'],['2027','Med Expert'],['2028','Medical Delta'],['2028','Arhimed Radiology'],['2028','Clinica Medical Pallady']]},
 ];
 const byName = n => D.find(d=>d.name===n);
 function buildCard(s){
