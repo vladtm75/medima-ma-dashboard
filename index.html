@@ -206,9 +206,7 @@
         <th data-k="ebitda">EBITDA 2025</th>
         <th data-k="margin">EBITDA Margin</th>
         <th data-k="revG">Avg Rev Gr.</th>
-        <th data-k="ebtG">Avg GP Gr.</th>
         <th data-k="debt">Debt/GP</th>
-        <th data-k="score">Score <span class="ar">▼</span></th>
         <th data-k="overlap">Overlap</th>
       </tr></thead>
       <tbody id="tbody"></tbody>
@@ -480,7 +478,7 @@ document.querySelectorAll('#scnTabs .tab').forEach(b=>b.onclick=()=>{
 });
 
 // ---------- table ----------
-let state={ov:'all',ty:'all',q:'',sort:'score',dir:-1};
+let state={ov:'all',ty:'all',q:'',sort:'rev',dir:-1};
 const tbody=document.getElementById('tbody');
 
 function counts(){
@@ -510,7 +508,6 @@ function render(){
   tbody.innerHTML=rows.map(d=>{
     const na=d.rev==null;
     const ov=d.overlap==null?'<span class="ov na">—</span>':d.overlap?'<span class="ov yes">YES</span>':'<span class="ov no">NO</span>';
-    const sc=d.score==null?'—':`<div class="score-cell"><div class="bar"><i style="width:${d.score}%;background:${scoreColor(d.score)}"></i></div><span style="color:${scoreColor(d.score)}">${d.score}</span></div>`;
     const ebtCls=d.ebt!=null&&d.ebt<0?'neg':'';
     const ebm=ebMethod(d);
     return `<tr>
@@ -523,11 +520,13 @@ function render(){
       <td title="${ebm?ebm.long:''}">${d.ebitda==null?'—':fmtMoney(d.ebitda)}${ebm?`<small style="display:block;color:var(--muted);font-size:9px;font-weight:400">${ebm.short}</small>`:''}</td>
       <td>${pctOrDash(ebMargin(d),1)}</td>
       <td>${na?'—':fmtPct(d.revG)}</td>
-      <td>${na?'—':fmtPct(d.ebtG)}</td>
       <td>${fmtDebt(d.debt,na)}</td>
-      <td>${sc}</td>
       <td>${ov}</td></tr>`;
   }).join('');
+  // sort-direction indicator on the active column (re-applied because year headers get rewritten)
+  document.querySelectorAll('thead th .ar').forEach(a=>a.remove());
+  const ath=document.querySelector('thead th[data-k="'+state.sort+'"]');
+  if(ath) ath.insertAdjacentHTML('beforeend', ' <span class="ar">'+(state.dir<0?'▼':'▲')+'</span>');
 }
 
 document.querySelectorAll('#ovTabs .tab').forEach(b=>b.onclick=()=>{
@@ -537,8 +536,7 @@ document.querySelectorAll('#tyTabs .tab').forEach(b=>b.onclick=()=>{
 document.getElementById('search').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
 document.querySelectorAll('thead th').forEach(th=>th.onclick=()=>{
   const k=th.dataset.k;if(state.sort===k)state.dir*=-1;else{state.sort=k;state.dir=(k==='name'||k==='cities')?1:-1;}
-  document.querySelectorAll('thead th .ar').forEach(a=>a.remove());
-  th.insertAdjacentHTML('beforeend',` <span class="ar">${state.dir<0?'▼':'▲'}</span>`);render();});
+  render();});
 
 // ---------- year + currency tabs ----------
 document.querySelectorAll('#yrTabs .tab').forEach(b=>b.onclick=()=>{
