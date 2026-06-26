@@ -245,8 +245,8 @@
 // cui = verified fiscal code (provenance). t: 'network' | 'single'. overlap: true/false. missing: no usable filing.
 const D = [
  // ---- NETWORKS (multi-city) ----
- {t:'network',name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,overlap:true,cui:24158114,y:[[36992156,7776362,43056349],[61357073,17302502,35260050],[87376181,27368484,49327882]]},
- {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
+ {t:'network',name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,overlap:true,cui:24158114,ef:0.6,y:[[36992156,7776362,43056349],[61357073,17302502,35260050],[87376181,27368484,49327882]]},
+ {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,ef:0.6,y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
  {t:'network',name:'Memormed',cities:'București – Unirii, Bd. A.I. Cuza, Cotroceni +2',loc:5,overlap:true,flag:'Outpatients',cui:23052971,y:[[22051094,1832111,7220046],[29821469,2741582,5337567],[32108322,1493228,11853536]]},
  {t:'network',name:'Dorna Medical',cities:'Vatra Dornei, Fălticeni, Rădăuți +4',loc:7,overlap:false,cui:15978905,y:[[61886645,291222,22233897],[79157281,1660680,43835261],[93150095,9680943,36846145]]},
  {t:'network',name:'Raze Medical Center',cities:'Oradea',loc:2,overlap:true,cui:45331268,y:[[1584041,-210068,1072960],[3809728,650397,536137],[7702192,533624,2831605]]},
@@ -346,7 +346,7 @@ const CUR = () => currency==='EUR' ? '€' : 'RON';
 function ebMethod(d){
   if(!d || d.ebt==null) return null;
   if(d.da!=null) return {short:'GP + D&A', long:'EBITDA = gross profit + D&A add-back of '+fmtMoney(d.da)+' '+CUR()+(d.fc!=null?' + finance costs '+fmtMoney(d.fc)+' '+CUR():'')};
-  if(d.ef!=null) return {short:'GP ÷ '+d.ef, long:'EBITDA = gross profit ÷ '+d.ef+' (company-specific EBT/EBITDA ratio)'};
+  if(d.ef!=null) return {short:'GP ÷ '+d.ef, long:'EBITDA = gross profit ÷ '+d.ef+' — company-specific (gross profit = '+Math.round(d.ef*100)+'% of EBITDA)'};
   return {short:'est. GP ÷ 0.7', long:'EBITDA estimate = gross profit ÷ 0.7 (flat factor). Per-company D&A + finance-cost add-back from the statutory P&L not yet loaded for this company.'};
 }
 function yoy(a,b){ return (a==null||b==null||b<=0) ? null : (a-b)/b*100; }
