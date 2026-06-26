@@ -153,9 +153,30 @@
   @media(max-width:1000px){.scns{grid-template-columns:1fr}.scns.single{grid-template-columns:1fr}}
   .foot{color:var(--muted);font-size:11px;margin-top:26px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
   @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.meth-grid{grid-template-columns:repeat(2,1fr)}.recs{grid-template-columns:repeat(2,1fr)}.search{margin-left:0;width:100%}}
+  /* access gate (cosmetic cover) */
+  #gate{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#6d28d9,#5b21b6 55%,#0d9488);display:flex;align-items:center;justify-content:center;padding:20px}
+  #gate .gcard{background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.3);padding:34px 30px;width:100%;max-width:380px;text-align:center}
+  #gate .glogo{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,#6d28d9,#14b8a6);color:#fff;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+  #gate h1{font-size:19px;margin:0 0 4px;color:#1f2238}
+  #gate p{color:#6b7280;font-size:12.5px;margin:0 0 20px;line-height:1.5}
+  #gate input{width:100%;padding:12px 14px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;outline:none;text-align:center;font-family:inherit}
+  #gate input:focus{border-color:#6d28d9}
+  #gate button{width:100%;margin-top:12px;padding:12px;border:none;border-radius:10px;background:#6d28d9;color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+  #gate button:hover{background:#5b21b6}
+  #gate .err{color:#dc2626;font-size:12px;margin-top:10px;min-height:16px}
 </style>
 </head>
 <body>
+<div id="gate">
+  <div class="gcard">
+    <div class="glogo">M</div>
+    <h1>Medima — M&A Pipeline</h1>
+    <p>Confidential. Enter the access password to continue.</p>
+    <input id="gatePw" type="password" placeholder="Password" autocomplete="off">
+    <button id="gateBtn">Unlock</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+</div>
 <div class="wrap">
 
   <div class="stickytop">
@@ -578,6 +599,24 @@ function refreshAll(){
   renderScn(scnSel);
 }
 refreshAll();
+
+// ---------- access gate (cosmetic cover; SHA-256 of password) ----------
+(function(){
+  const GATE_HASH='748a195ed3a845e0f519a6ce35e7c0712a17bfdf1a616ceb62801a468c67fafb'; // sha256("medima2027") — change to update password
+  const gate=document.getElementById('gate'); if(!gate) return;
+  if(sessionStorage.getItem('medima_ok')==='1'){ gate.style.display='none'; return; }
+  const pw=document.getElementById('gatePw'), btn=document.getElementById('gateBtn'), err=document.getElementById('gateErr');
+  async function sha256(s){ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+  async function tryUnlock(){
+    try{
+      if((await sha256(pw.value))===GATE_HASH){ sessionStorage.setItem('medima_ok','1'); gate.style.display='none'; }
+      else { err.textContent='Incorrect password'; pw.value=''; pw.focus(); }
+    }catch(e){ err.textContent='This browser cannot verify the password.'; }
+  }
+  btn.onclick=tryUnlock;
+  pw.addEventListener('keydown',e=>{ if(e.key==='Enter') tryUnlock(); });
+  pw.focus();
+})();
 </script>
 </body>
 </html>
