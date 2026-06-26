@@ -206,7 +206,7 @@
         <th data-k="loc">Loc</th>
         <th data-k="rev">Rev 2024</th>
         <th data-k="ebt">EBT 2024</th>
-        <th data-k="margin">EBT Margin</th>
+        <th data-k="margin">EBITDA Margin</th>
         <th data-k="revG">Avg Rev Gr.</th>
         <th data-k="ebtG">Avg EBT Gr.</th>
         <th data-k="debt">Debt/EBT</th>
@@ -264,7 +264,7 @@ const D = [
  {t:'single',r:5,name:'Med Expert',cities:'București',loc:1,rev:1300000,ebt:398000,margin:30.5,revG:65.9,ebtG:172.9,debt:1.1,score:52.4,overlap:true},
  {t:'single',r:6,name:'Centrul Medical Brâncuși',cities:'București',loc:1,rev:5400000,ebt:1200000,margin:22.9,revG:19.3,ebtG:18.3,debt:1.2,score:50.6,overlap:true},
  {t:'single',r:7,name:'ALFA Polyclinics',cities:'București',loc:1,rev:5300000,ebt:996000,margin:18.9,revG:24.8,ebtG:24.0,debt:1.7,score:50.0,overlap:true},
- {t:'single',r:8,name:'Atlas Imagistica',cities:'Târgu Mureș',loc:1,rev:1700000,ebt:227000,margin:13.1,revG:99.2,ebtG:387.0,debt:4.8,score:49.2,overlap:true},
+ {t:'single',r:8,name:'Atlas Imagistica',cities:'Târgu Mureș',loc:1,rev:1700000,ebt:227000,margin:13.1,revG:99.2,ebtG:387.0,debt:4.8,score:49.2,overlap:true,flag:'In talks'},
  {t:'single',r:9,name:'Clinica Laser System',cities:'Arad',loc:1,rev:6300000,ebt:1200000,margin:19,revG:19.0,ebtG:22.6,debt:3.6,score:49.2,overlap:true},
  {t:'single',r:10,name:'Recumed',cities:'Vaslui',loc:1,rev:5200000,ebt:970000,margin:18.7,revG:13.0,ebtG:32.7,debt:1.9,score:48.0,overlap:true},
  {t:'single',r:11,name:'Tonic Medical Center',cities:'Bârlad',loc:1,rev:1800000,ebt:344000,margin:19.5,revG:74.1,ebtG:125.1,debt:6.4,score:47.9,overlap:false},
@@ -363,7 +363,7 @@ document.getElementById('recs').innerHTML = RECS.map((r,i)=>`
     <div class="city">${r.c}</div>
     <div class="stats">
       <div><b>${r.rev}</b><span>Revenue</span></div>
-      <div><b>${r.m}</b><span>Margin</span></div>
+      <div><b>${(parseFloat(r.m)/0.7).toFixed(0)}%</b><span>EBITDA mgn</span></div>
       <div><b>${r.s}/100</b><span>Score</span></div>
     </div>
     <div class="meta">1 loc · ${r.emp} emp · ${r.db}</div>
@@ -375,27 +375,29 @@ const TARGET_MIN = 2_000_000, TARGET_MAX = 4_000_000;
 const SCN = [
  {tag:'0.1 · 1 deal · network', name:'ScanExpert anchor', desc:'Single buy of the pipeline’s top-scored network (95/100): 8 sites across Iași, Galați, Brașov +5. Its 3.5M € EBT delivers ~5M EBITDA on its own — the single largest play, clearing the target outright — though Medima already overlaps several of these cities.',
   deals:[['2027','Scanexpert']]},
- {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). High revenue (16.2M €) but a razor-thin 2.1% margin and 26× debt/EBT — on its own it lands far below the 2M EBITDA floor.',
+ {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). High revenue (16.2M €) but a razor-thin ~3% EBITDA margin and 26× debt/EBT — on its own it lands far below the 2M EBITDA floor.',
   deals:[['2027','Dorna Medical']]},
- {tag:'1 deal · fastest', name:'Anchor', desc:'One premium București asset clears the 2M floor in a single transaction. Lowest execution effort, highest concentration risk.',
-  deals:[['2027','Eureka']]},
- {tag:'3 deals · balanced', name:'Balanced portfolio', desc:'Three mid-size, profitable clinics across different counties. Diversified risk, lands comfortably mid-band.',
-  deals:[['2027','Lotus Image'],['2027','Recumed'],['2028','Romrad']]},
- {tag:'5 deals · whitespace', name:'No-overlap expansion', desc:'Five smaller targets in cities with no Medima presence (from the priority list). Maximises geographic footprint per euro.',
-  deals:[['2027','DoinaMed'],['2027','Natisan Medicina Generala'],['2027','RMN Imagistica'],['2028','Tonic Medical Center'],['2028','Clubul Sănătății']]},
- {tag:'6 deals · small clinics', name:'Small-clinic roll-up', desc:'Six small but profitable single-city clinics — all ≤ 1.3M € revenue — bundled to clear the 2M floor with no large transaction. Smallest ticket per deal, highest execution count, spread across six towns.',
-  deals:[['2027','Romrad'],['2027','Victoria Imagistic'],['2027','Med Expert'],['2028','Medical Delta'],['2028','Arhimed Radiology'],['2028','Clinica Medical Pallady']]},
+ {tag:'2 deals · anchor', name:'Anchor', desc:'One premium București asset (Eureka) plus Atlas (Târgu Mureș) — a live deal in discussion. Clears the floor with the lowest deal count; highest concentration risk.',
+  deals:[['2027','Eureka'],['2027','Atlas Imagistica','in talks']]},
+ {tag:'4 deals · balanced', name:'Balanced portfolio', desc:'Mid-size, profitable clinics across different counties — including Atlas (Târgu Mureș, in discussion). Diversified risk, comfortably above the floor.',
+  deals:[['2027','Lotus Image'],['2027','Recumed'],['2028','Romrad'],['2027','Atlas Imagistica','in talks']]},
+ {tag:'6 deals · whitespace', name:'No-overlap expansion', desc:'Five whitespace targets in cities with no Medima presence, plus Atlas (Târgu Mureș, in discussion) — the one overlap, included as a committed deal. Maximises geographic footprint per euro.',
+  deals:[['2027','DoinaMed'],['2027','Natisan Medicina Generala'],['2027','RMN Imagistica'],['2028','Tonic Medical Center'],['2028','Clubul Sănătății'],['2027','Atlas Imagistica','in talks']]},
+ {tag:'7 deals · small clinics', name:'Small-clinic roll-up', desc:'Seven small, profitable single-city clinics (most ≤ 1.3M € revenue) — including Atlas (Târgu Mureș, in discussion) — bundled to clear the 2M floor with no large transaction. Highest execution count, spread across seven towns.',
+  deals:[['2027','Romrad'],['2027','Victoria Imagistic'],['2027','Med Expert'],['2028','Medical Delta'],['2028','Arhimed Radiology'],['2028','Clinica Medical Pallady'],['2028','Atlas Imagistica','in talks']]},
 ];
 const byName = n => D.find(d=>d.name===n);
 function buildCard(s){
-  let ebt=0;
-  const rows = s.deals.map(([yr,n])=>{
-    const c=byName(n); ebt+=c.ebt; const eb=c.ebt*EBITDA_F;
+  let ebt=0, rev=0;
+  const rows = s.deals.map(([yr,n,note])=>{
+    const c=byName(n); ebt+=c.ebt; rev+=c.rev||0; const eb=c.ebt*EBITDA_F;
+    const dm = c.rev ? (eb/c.rev*100).toFixed(1)+'%' : '—';
     return `<div class="deal"><span class="yr">${yr}</span>
-      <div class="dn">${c.name}<small>${c.cities.split(',')[0]} · ${c.overlap?'overlap':'no overlap'}</small></div>
-      <div class="de">${fmtEUR(c.ebt)} EBT<small>${fmtEUR(eb)} EBITDA</small></div></div>`;
+      <div class="dn">${c.name}${note?` <span class="badge">${note}</span>`:''}<small>${c.cities.split(',')[0]} · ${c.overlap?'overlap':'no overlap'}</small></div>
+      <div class="de">${fmtEUR(eb)} EBITDA<small>${dm} margin</small></div></div>`;
   }).join('');
   const ebitda=ebt*EBITDA_F, pct=Math.min(100,ebitda/TARGET_MAX*100);
+  const tm = rev ? (ebitda/rev*100).toFixed(1)+'%' : '—';
   const n=s.deals.length, dl=`${n} deal${n>1?'s':''}`;
   let status;
   if(ebitda<TARGET_MIN) status=`<div class="ok" style="color:var(--neg)">✗ ${((TARGET_MIN-ebitda)/1e6).toFixed(2)}M short of the 2M floor · ${dl}</div>`;
@@ -404,7 +406,7 @@ function buildCard(s){
     <div class="sh"><span class="tag">${s.tag}</span><h3>${s.name}</h3><p>${s.desc}</p></div>
     <div class="deals">${rows}</div>
     <div class="tot">
-      <div class="big">${(ebitda/1e6).toFixed(2)}M <small>EBITDA · ${(ebt/1e6).toFixed(2)}M EBT</small></div>
+      <div class="big">${(ebitda/1e6).toFixed(2)}M <small>EBITDA · ${tm} margin · ${(ebt/1e6).toFixed(2)}M EBT</small></div>
       <div class="band"><i style="width:${pct}%"></i><span class="min"></span></div>
       <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">2M floor</span><span>4M+</span></div>
       ${status}
@@ -460,7 +462,7 @@ function render(){
       <td>${d.loc}</td>
       <td>${d.missing?'—':fmtEUR(d.rev)}</td>
       <td class="${ebtCls}">${d.missing?'—':fmtEUR(d.ebt)}</td>
-      <td>${d.margin==null?'—':d.margin+'%'}</td>
+      <td>${d.margin==null?'—':(d.margin/0.7).toFixed(1)+'%'}</td>
       <td>${d.missing?'—':fmtPct(d.revG)}</td>
       <td>${d.missing?'—':fmtPct(d.ebtG)}</td>
       <td>${fmtDebt(d.debt,d.missing)}</td>
