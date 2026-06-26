@@ -306,6 +306,7 @@ const D = [
  {t:'single',name:'Centrul Medical Brâncuși',cities:'București',loc:1,overlap:true,cui:25092182,y:[[1249205,324522,20965665],[1572390,-161656,21067317],[1850809,-1368533,20092106]]},
  {t:'single',name:'ALFA Polyclinics',cities:'București',loc:1,overlap:true,cui:5821643,y:[[19992066,3205159,6282600],[25618771,4956629,8275771],[29729064,6142130,7628583]]},
  {t:'single',name:'Atlas Imagistica',cities:'Târgu Mureș',loc:1,overlap:true,flag:'In talks',cui:35236919,y:[[6057883,325040,5358978],[8374340,1128926,5425208],[9098451,1551025,4452639]]},
+ {t:'single',name:'Krauss Klinik',cities:'Târgu Mureș',loc:1,overlap:true,flag:'Atlas group',cui:23536807,y:[[4217742,1974307,357749],[7479773,2665758,807262],[10212008,3302527,4581859]]},
  {t:'single',name:'Clinica Laser System',cities:'Arad',loc:1,overlap:true,cui:13404817,y:[[27993644,5394271,26078297],[30968265,6013982,21903598],[35614287,8959500,23507782]]},
  {t:'single',name:'Recumed',cities:'Vaslui',loc:1,overlap:true,cui:18605919,y:[[21910979,3532438,7508178],[24623176,4824978,8983236],[28501584,5666047,12663025]]},
  {t:'single',name:'Tonic Medical Center',cities:'Bârlad',loc:1,overlap:false,cui:36708238,y:[[4258495,336749,8060090],[8707397,1712605,11008705],[11195691,1486365,16990315]]},
@@ -459,7 +460,7 @@ function updateHeaders(){
 
 // ---------- recommendations (curated pipeline targets) ----------
 const RECS = [
- {n:'Atlas Imagistica', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
+ {n:'Atlas Imagistica', tag:'In talks', cls:'talk', note:'In active discussions · bundled with Krauss Klinik (teleradiology, not sold separately)'},
  {n:'Dorna Medical', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
  {n:'Apex Imagistic', tag:'In talks', cls:'talk', note:'Discussions already underway · Suceava'},
  {n:'Romrad', tag:'New market', cls:'entry', note:'Want to enter Drobeta-Turnu Severin'},
@@ -497,11 +498,11 @@ const SCN = [
  {tag:'2 deals · anchor', name:'Anchor', desc:'The two highest-EST.-EBITDA names on the recommendation list — Eureka (efficient, >1M EBITDA) and Korall (Satu Mare). Clears the floor in two transactions; highest concentration.',
   deals:[['2027','Eureka'],['2027','Korall']]},
  {tag:'4 deals · balanced', name:'Balanced portfolio', desc:'Four actively-pursued / new-market recommendations across four counties — Atlas (Mureș, in talks), Medimar (Constanța), Apex (Suceava), Arhimed (Iași). Diversified, all on the priority list.',
-  deals:[['2027','Atlas Imagistica','in talks'],['2027','Medimar'],['2028','Apex Imagistic'],['2028','Arhimed Radiology']]},
+  deals:[['2027','Atlas Imagistica','in talks'],['2027','Krauss Klinik','pkg w/ Atlas',true],['2027','Medimar'],['2028','Apex Imagistic'],['2028','Arhimed Radiology']]},
  {tag:'7 deals · whitespace', name:'No-overlap expansion', desc:'Every recommended whitespace target — seven cities with no Medima presence: Medimar (Constanța), Apex (Suceava), Medview (Cluj), Arhimed (Iași), RMN Imagistica (Timișoara), DoinaMed (Vâlcea), Romrad (Drobeta).',
   deals:[['2027','Medimar'],['2027','Apex Imagistic'],['2027','Medview Centru Medical'],['2028','Arhimed Radiology'],['2028','RMN Imagistica'],['2028','DoinaMed'],['2028','Romrad']]},
  {tag:'5 deals · small clinics', name:'Small-clinic roll-up', desc:'The smallest-ticket recommended single-clinic targets — lowest capital per deal, widest spread; includes the Atlas live deal.',
-  deals:[['2027','DoinaMed'],['2027','Romrad'],['2027','Atlas Imagistica','in talks'],['2028','Arhimed Radiology'],['2028','Apex Imagistic']]},
+  deals:[['2027','DoinaMed'],['2027','Romrad'],['2027','Atlas Imagistica','in talks'],['2027','Krauss Klinik','pkg w/ Atlas',true],['2028','Arhimed Radiology'],['2028','Apex Imagistic']]},
 ];
 function buildCard(s){
   let ebt=0, rev=0, ebitda=0;
@@ -514,7 +515,7 @@ function buildCard(s){
   }).join('');
   const pct=Math.min(100,ebitda/TARGET_MAX*100);
   const tm = rev ? (ebitda/rev*100).toFixed(1)+'%' : '—';
-  const n=s.deals.length, dl=`${n} deal${n>1?'s':''}`;
+  const n=s.deals.filter(d=>!d[3]).length, dl=`${n} deal${n>1?'s':''}`;
   const floorLbl=fmtMoney(TARGET_MIN);
   let status;
   if(ebitda<TARGET_MIN) status=`<div class="ok" style="color:var(--neg)">✗ ${fmtMoney(TARGET_MIN-ebitda)} short of the ${floorLbl} floor · ${dl}</div>`;
