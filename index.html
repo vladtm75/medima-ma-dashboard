@@ -217,6 +217,7 @@
         <th data-k="loc">Loc</th>
         <th data-k="rev">Rev 2025</th>
         <th data-k="ebt">Gross Profit 2025</th>
+        <th data-k="ebitda">EBITDA 2025</th>
         <th data-k="margin">EBITDA Margin</th>
         <th data-k="revG">Avg Rev Gr.</th>
         <th data-k="ebtG">Avg GP Gr.</th>
@@ -357,15 +358,22 @@ const rateNow = () => FX[YEAR_OF(currentYi)] || 1;
 const conv = v => v==null ? null : (currency==='EUR' ? v/rateNow() : v);
 const fmtMoney = v => fmtN(conv(v));
 const CUR = () => currency==='EUR' ? '€' : 'RON';
+// Per-company EBITDA calculation note (short label for the cell + long text for the tooltip).
+function ebMethod(d){
+  if(!d || d.ebt==null) return null;
+  if(d.da!=null) return {short:'GP + D&A', long:'EBITDA = gross profit + D&A add-back of '+fmtMoney(d.da)+' '+CUR()+(d.fc!=null?' + finance costs '+fmtMoney(d.fc)+' '+CUR():'')};
+  if(d.ef!=null) return {short:'GP ÷ '+d.ef, long:'EBITDA = gross profit ÷ '+d.ef+' (company-specific EBT/EBITDA ratio)'};
+  return {short:'est. GP ÷ 0.7', long:'EBITDA estimate = gross profit ÷ 0.7 (flat factor). Per-company D&A + finance-cost add-back from the statutory P&L not yet loaded for this company.'};
+}
 function yoy(a,b){ return (a==null||b==null||b<=0) ? null : (a-b)/b*100; }
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 
 function applyYear(yi){
   currentYi = yi;
   D.forEach(d=>{
-    if(!d.y || !d.y[yi] || d.y[yi][0]==null){ d.rev=d.ebt=d.margin=d.revG=d.ebtG=d.debt=d.score=null; return; }
+    if(!d.y || !d.y[yi] || d.y[yi][0]==null){ d.rev=d.ebt=d.ebitda=d.margin=d.revG=d.ebtG=d.debt=d.score=null; return; }
     const cur=d.y[yi];
-    d.rev=cur[0]; d.ebt=cur[1];
+    d.rev=cur[0]; d.ebt=cur[1]; d.ebitda=ebitdaOf(d);
     d.debt=(cur[2]!=null && cur[1]>0) ? +(cur[2]/cur[1]).toFixed(1) : null;
     d.margin=(d.rev>0 && d.ebt!=null) ? +(d.ebt/d.rev*100).toFixed(1) : null;
     const rg=[], eg=[];
@@ -409,6 +417,7 @@ function updateHeaders(){
   const Y=YEAR_OF(currentYi);
   const thRev=document.querySelector('thead th[data-k="rev"]'); if(thRev) thRev.textContent='Rev '+Y;
   const thEbt=document.querySelector('thead th[data-k="ebt"]'); if(thEbt) thEbt.textContent='Gross Profit '+Y;
+  const thEbd=document.querySelector('thead th[data-k="ebitda"]'); if(thEbd) thEbd.textContent='EBITDA '+Y;
   const sub=document.getElementById('subYear'); if(sub) sub.textContent='FY'+Y;
   const mg=document.getElementById('methGpYear'); if(mg) mg.textContent='Gross Profit '+Y;
   const sc=document.getElementById('subCur'); if(sc) sc.textContent = currency==='EUR' ? ('EUR @ '+rateNow().toFixed(4)) : 'RON';
@@ -545,6 +554,7 @@ function render(){
     const ov=d.overlap==null?'<span class="ov na">—</span>':d.overlap?'<span class="ov yes">YES</span>':'<span class="ov no">NO</span>';
     const sc=d.score==null?'—':`<div class="score-cell"><div class="bar"><i style="width:${d.score}%;background:${scoreColor(d.score)}"></i></div><span style="color:${scoreColor(d.score)}">${d.score}</span></div>`;
     const ebtCls=d.ebt!=null&&d.ebt<0?'neg':'';
+    const ebm=ebMethod(d);
     return `<tr>
       <td class="l rank">${d.t==='network'?'N':''}${d.r||''}</td>
       <td class="l co">${d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
@@ -552,6 +562,7 @@ function render(){
       <td>${d.loc}</td>
       <td>${fmtMoney(d.rev)}</td>
       <td class="${ebtCls}">${fmtMoney(d.ebt)}</td>
+      <td title="${ebm?ebm.long:''}">${d.ebitda==null?'—':fmtMoney(d.ebitda)}${ebm?`<small style="display:block;color:var(--muted);font-size:9px;font-weight:400">${ebm.short}</small>`:''}</td>
       <td>${pctOrDash(ebMargin(d),1)}</td>
       <td>${na?'—':fmtPct(d.revG)}</td>
       <td>${na?'—':fmtPct(d.ebtG)}</td>
