@@ -102,7 +102,7 @@
   .rec-head{margin:30px 0 14px}
   .rec-head h2{font-size:16px;margin:0}
   .rec-head .ph{color:var(--muted);font-size:12.5px;margin-top:2px}
-  .recs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
+  .recs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:36px}
   .rec{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--line);border-top:3px solid var(--teal)}
   .rec .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
   .rec .rn{font-weight:700;font-size:13.5px}
@@ -466,6 +466,7 @@ const RECS = [
  {n:'Medview Centru Medical', tag:'New market', cls:'entry', note:'Interested in entering Cluj-Napoca'},
  {n:'DoinaMed', tag:'New market', cls:'entry', note:'Want to enter Râmnicu Vâlcea'},
  {n:'Korall', tag:'Strengthen', cls:'consol', note:'Strengthen our presence in Satu Mare (overlap accepted)'},
+ {n:'Medimar', tag:'New market', cls:'entry', note:'Want to enter Constanța'},
 ];
 function renderRecs(){
   document.getElementById('recs').innerHTML = RECS.map((r,i)=>{
