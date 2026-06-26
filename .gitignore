@@ -1,5 +1,7 @@
 # Screenshots & images (not part of the published site)
 *.png
+# ...except the Open Graph share image
+!og-image.png
 # Windows / OneDrive system files
 desktop.ini
 Thumbs.db
