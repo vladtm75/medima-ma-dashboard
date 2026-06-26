@@ -470,12 +470,13 @@ const RECS = [
  {n:'Medimar', tag:'New market', cls:'entry', note:'Want to enter Constanța'},
  {n:'Eureka', tag:'Efficient', cls:'perf', note:'Over 1M EBITDA — highly efficient operator'},
  {n:'Arhimed Radiology', tag:'Strengthen', cls:'consol', note:'Consolidate our position in Iași'},
+ {n:'RMN Imagistica', tag:'New market', cls:'entry', note:'Profitable imaging clinic · enter Timișoara'},
 ];
 function renderRecs(){
   document.getElementById('recs').innerHTML = RECS.map((r,i)=>{
     const d=byName(r.n); if(!d) return '';
     const fin = d.rev!=null
-      ? `<div class="stats"><div><b>${fmtMoney(d.rev)}</b><span>Revenue</span></div><div><b>${pctOrDash(ebMargin(d),0)}</b><span>EST. EBITDA mgn</span></div></div>`
+      ? `<div class="stats"><div><b>${fmtMoney(d.ebitda)}</b><span>EST. EBITDA</span></div><div><b>${pctOrDash(ebMargin(d),0)}</b><span>EST. EBITDA mgn</span></div></div>`
       : '';
     return `<div class="rec${r.cls==='sold'?' soldrec':''}">
       <div class="rh"><div class="rn">${i+1}. ${d.name}</div><span class="tag ${r.cls}">${r.tag}</span></div>
@@ -497,8 +498,8 @@ const SCN = [
   deals:[['2027','Eureka'],['2027','Korall']]},
  {tag:'4 deals · balanced', name:'Balanced portfolio', desc:'Four actively-pursued / new-market recommendations across four counties — Atlas (Mureș, in talks), Medimar (Constanța), Apex (Suceava), Arhimed (Iași). Diversified, all on the priority list.',
   deals:[['2027','Atlas Imagistica','in talks'],['2027','Medimar'],['2028','Apex Imagistic'],['2028','Arhimed Radiology']]},
- {tag:'6 deals · whitespace', name:'No-overlap expansion', desc:'Every recommended whitespace target — six cities with no Medima presence: Medimar (Constanța), Apex (Suceava), Medview (Cluj), Arhimed (Iași), DoinaMed (Vâlcea), Romrad (Drobeta).',
-  deals:[['2027','Medimar'],['2027','Apex Imagistic'],['2027','Medview Centru Medical'],['2028','Arhimed Radiology'],['2028','DoinaMed'],['2028','Romrad']]},
+ {tag:'7 deals · whitespace', name:'No-overlap expansion', desc:'Every recommended whitespace target — seven cities with no Medima presence: Medimar (Constanța), Apex (Suceava), Medview (Cluj), Arhimed (Iași), RMN Imagistica (Timișoara), DoinaMed (Vâlcea), Romrad (Drobeta).',
+  deals:[['2027','Medimar'],['2027','Apex Imagistic'],['2027','Medview Centru Medical'],['2028','Arhimed Radiology'],['2028','RMN Imagistica'],['2028','DoinaMed'],['2028','Romrad']]},
  {tag:'5 deals · small clinics', name:'Small-clinic roll-up', desc:'The smallest-ticket recommended single-clinic targets — lowest capital per deal, widest spread; includes the Atlas live deal.',
   deals:[['2027','DoinaMed'],['2027','Romrad'],['2027','Atlas Imagistica','in talks'],['2028','Arhimed Radiology'],['2028','Apex Imagistic']]},
 ];
