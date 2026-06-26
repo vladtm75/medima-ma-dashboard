@@ -116,6 +116,8 @@
   .tag.talk{background:#dcf7f1;color:#0d8a76}
   .tag.strat{background:#efeafc;color:#6d28d9}
   .tag.open{background:#fef3c7;color:#92400e}
+  .tag.entry{background:#dbeafe;color:#1d4ed8}
+  .tag.consol{background:#e0e7ff;color:#4338ca}
   .tag.sold{background:#fdecef;color:#be123c}
   .rec.soldrec{opacity:.72;border-top-color:#dc2626}
   /* info tooltip */
@@ -458,9 +460,12 @@ function updateHeaders(){
 const RECS = [
  {n:'Atlas Imagistica', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
  {n:'Dorna Medical', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
- {n:'RMN Diagnostica / Med House (Dexa)', tag:'Strategic', cls:'strat', note:'Competitive / disruptive operating model worth securing'},
+ {n:'Apex Imagistic', tag:'In talks', cls:'talk', note:'Discussions already underway · Suceava'},
  {n:'Romrad', tag:'Open to sale', cls:'open', note:'Sellers open · Drobeta-Turnu Severin is a city we want to enter'},
- {n:'Neuroaxis', tag:'Sold', cls:'sold', note:'⚠ Already acquired by Regina Maria — no longer available'},
+ {n:'RMN Diagnostica / Med House (Dexa)', tag:'Strategic', cls:'strat', note:'Competitive / disruptive operating model worth securing'},
+ {n:'Medview Centru Medical', tag:'New market', cls:'entry', note:'Interested in entering Cluj-Napoca'},
+ {n:'DoinaMed', tag:'New market', cls:'entry', note:'Want to enter Râmnicu Vâlcea'},
+ {n:'Korall', tag:'Strengthen', cls:'consol', note:'Strengthen our presence in Satu Mare (overlap accepted)'},
 ];
 function renderRecs(){
   document.getElementById('recs').innerHTML = RECS.map((r,i)=>{
