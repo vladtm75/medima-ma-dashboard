@@ -112,6 +112,12 @@
   .rec .stats b{display:block;color:var(--purple);font-size:13px}
   .rec .stats span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
   .rec .meta{margin-top:9px;color:var(--muted);font-size:10.5px;border-top:1px dashed var(--line);padding-top:7px}
+  .rec .tag{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:3px 8px;border-radius:999px;flex-shrink:0;white-space:nowrap}
+  .tag.talk{background:#dcf7f1;color:#0d8a76}
+  .tag.strat{background:#efeafc;color:#6d28d9}
+  .tag.open{background:#fef3c7;color:#92400e}
+  .tag.sold{background:#fdecef;color:#be123c}
+  .rec.soldrec{opacity:.72;border-top-color:#dc2626}
   /* info tooltip */
   .info{position:relative;display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#efeafc;color:var(--purple);font-size:12px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:help;margin-left:9px;vertical-align:middle}
   .info .tip{position:absolute;top:26px;left:0;z-index:90;width:440px;max-width:86vw;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:14px 16px;font-size:11.5px;font-weight:400;font-style:normal;color:var(--ink);line-height:1.5;opacity:0;visibility:hidden;transform:translateY(-4px);transition:.15s;text-transform:none;letter-spacing:normal}
@@ -232,7 +238,7 @@
         <th data-k="rev">Rev 2025</th>
         <th data-k="revG">Avg Rev Gr.</th>
         <th data-k="ebt">Gross Profit 2025</th>
-        <th data-k="ebitda">EBITDA 2025</th>
+        <th data-k="ebitda">EST. EBITDA* 2025</th>
         <th data-k="margin">EBITDA Margin</th>
         <th data-k="debt">Debt/GP</th>
         <th data-k="overlap">Overlap</th>
@@ -242,14 +248,14 @@
   </div>
 
   <div class="rec-head">
-    <h2>Top M&A Recommendations — No Medima Overlap<span class="info" tabindex="0">i<span class="tip">
+    <h2>Top M&A Recommendations<span class="info" tabindex="0">i<span class="tip">
       <div class="th">Scoring methodology — composite 0–100, weighted average</div>
       <div class="row"><b>Gross profit · 50%</b> — absolute gross profit (Profit brut) for the selected year, scored vs the pipeline maximum (= 100); losses score 0.</div>
       <div class="row"><b>Avg revenue growth · 20%</b> — average YoY revenue growth up to the selected year (mapped −10%→0, +50%→100).</div>
       <div class="row"><b>Avg gross-profit growth · 20%</b> — average YoY gross-profit growth (positive-base years only).</div>
       <div class="row"><b>Debt health · 10%</b> — total debt (DATORII) ÷ gross profit; ≤2× excellent, &gt;10× or a loss a red flag.</div>
     </span></span></h2>
-    <div class="ph">Highest priority: profitable single-city targets in cities where Medima has no presence (by selected-year composite score)</div>
+    <div class="ph">Curated priority targets — companies in active discussion or strategically prioritised (financials follow the selected year & currency)</div>
   </div>
   <div class="recs" id="recs"></div>
 
@@ -326,7 +332,7 @@ const D = [
  {t:'single',name:'Apex Imagistic',cities:'Suceava',loc:1,overlap:false,cui:45442320,y:[[2060874,-625856,9019825],[6998049,1607313,9704930],[9182558,1651318,9360708]]},
  {t:'single',name:'Interservisan',cities:'Cluj-Napoca',loc:1,overlap:false,cui:2880513,y:[[17105261,157427,5267355],[16392573,192435,5814883],[15966929,126817,5374185]]},
  {t:'single',name:'Star Medica',cities:'Satu Mare',loc:1,overlap:true,cui:35449828,y:[[670706,10277,192532],[1410046,2645,214938],[2009117,29537,577398]]},
- {t:'single',name:'Neuroaxis',cities:'București',loc:1,overlap:true,cui:36997659,y:[[12071942,-72648,10900692],[16827703,1301441,9227665],[19732524,1825832,8437649]]},
+ {t:'single',name:'Neuroaxis',cities:'București',loc:1,overlap:true,flag:'Sold',cui:36997659,y:[[12071942,-72648,10900692],[16827703,1301441,9227665],[19732524,1825832,8437649]]},
  {t:'single',name:'Clinical Image',cities:'Timișoara',loc:1,overlap:false,cui:27283022,y:[[2125973,709976,540562],[1974367,655761,341326],[2286798,110986,171194]]},
  {t:'single',name:'Life Scan',cities:'Târgu Jiu',loc:1,overlap:true,cui:37202904,y:[[4388008,2244374,147779],[3851561,1661236,286338],[3449729,1144351,10360331]]},
  {t:'single',name:'SPAD',cities:'Craiova',loc:1,overlap:true,cui:22117010,y:[[11247625,2653251,3191847],[11611157,1318529,4710915],[14941332,3183316,9346282]]},
@@ -359,9 +365,11 @@ const DEF_EF = 0.7;
 const byName = n => D.find(d=>d.name===n);
 const ebitdaOf = d => {
   if(!d || d.ebt==null) return null;
-  if(d.da!=null) return d.ebt + d.da;
-  if(d.ef!=null) return d.ebt/d.ef;
-  return d.ebt/DEF_EF;
+  if(d.da!=null) return d.ebt + d.da;                 // real D&A add-back — no cap
+  let e = d.ef!=null ? d.ebt/d.ef : d.ebt/DEF_EF;     // estimate
+  // realism guardrail: cap EST. EBITDA margin (single/≤2 clinics: 50%, >2-clinic networks: 40% of revenue)
+  if(d.rev>0){ const cap=(d.loc>2?0.40:0.50)*d.rev; if(e>cap) e=cap; }
+  return e;
 };
 const ebMargin = d => (d && d.rev && ebitdaOf(d)!=null) ? ebitdaOf(d)/d.rev*100 : null;
 const pctOrDash = (v,dp=0) => v==null ? '—' : v.toFixed(dp)+'%';
@@ -380,8 +388,13 @@ const CUR = () => currency==='EUR' ? '€' : 'RON';
 function ebMethod(d){
   if(!d || d.ebt==null) return null;
   if(d.da!=null) return {short:'GP + D&A', long:'EBITDA = gross profit + D&A add-back of '+fmtMoney(d.da)+' '+CUR()+(d.fc!=null?' + finance costs '+fmtMoney(d.fc)+' '+CUR():'')};
-  if(d.ef!=null) return {short:'GP ÷ '+d.ef, long:'EBITDA = gross profit ÷ '+d.ef+' — company-specific (gross profit = '+Math.round(d.ef*100)+'% of EBITDA)'};
-  return {short:'est. GP ÷ 0.7', long:'EBITDA estimate = gross profit ÷ 0.7 (flat factor). Per-company D&A + finance-cost add-back from the statutory P&L not yet loaded for this company.'};
+  const base = d.ef!=null ? d.ebt/d.ef : d.ebt/DEF_EF;
+  const capPct = d.loc>2 ? 40 : 50;
+  const capped = d.rev>0 && d.ebt>0 && base > capPct/100*d.rev;
+  const factorTxt = d.ef!=null ? ('gross profit ÷ '+d.ef) : 'gross profit ÷ 0.7';
+  if(capped) return {short:'capped '+capPct+'%', long:'EST. EBITDA capped at '+capPct+'% of revenue — realism guardrail for '+(d.loc>2?'networks (>2 clinics)':'single / ≤2-clinic companies')+'. Uncapped estimate ('+factorTxt+') would imply an unrealistic margin.'};
+  if(d.ef!=null) return {short:'GP ÷ '+d.ef, long:'EST. EBITDA = gross profit ÷ '+d.ef+' — company-specific (gross profit = '+Math.round(d.ef*100)+'% of EBITDA); below the '+capPct+'%-of-revenue cap.'};
+  return {short:'est. GP ÷ 0.7', long:'EST. EBITDA = gross profit ÷ 0.7 (flat factor), under the '+capPct+'%-of-revenue realism cap. Per-company D&A add-back not yet loaded.'};
 }
 function yoy(a,b){ return (a==null||b==null||b<=0) ? null : (a-b)/b*100; }
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
@@ -435,26 +448,33 @@ function updateHeaders(){
   const Y=YEAR_OF(currentYi);
   const thRev=document.querySelector('thead th[data-k="rev"]'); if(thRev) thRev.textContent='Rev '+Y;
   const thEbt=document.querySelector('thead th[data-k="ebt"]'); if(thEbt) thEbt.textContent='Gross Profit '+Y;
-  const thEbd=document.querySelector('thead th[data-k="ebitda"]'); if(thEbd) thEbd.textContent='EBITDA '+Y;
+  const thEbd=document.querySelector('thead th[data-k="ebitda"]'); if(thEbd) thEbd.textContent='EST. EBITDA* '+Y;
   const sub=document.getElementById('subYear'); if(sub) sub.textContent='FY'+Y;
   const mg=document.getElementById('methGpYear'); if(mg) mg.textContent='Gross Profit '+Y;
   const sc=document.getElementById('subCur'); if(sc) sc.textContent = currency==='EUR' ? ('EUR @ '+rateNow().toFixed(4)) : 'RON';
 }
 
-// ---------- recommendations (dynamic: top no-overlap single-city by score) ----------
+// ---------- recommendations (curated pipeline targets) ----------
+const RECS = [
+ {n:'Atlas Imagistica', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
+ {n:'Dorna Medical', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
+ {n:'RMN Diagnostica / Med House (Dexa)', tag:'Strategic', cls:'strat', note:'Competitive / disruptive operating model worth securing'},
+ {n:'Romrad', tag:'Open to sale', cls:'open', note:'Sellers open · Drobeta-Turnu Severin is a city we want to enter'},
+ {n:'Neuroaxis', tag:'Sold', cls:'sold', note:'⚠ Already acquired by Regina Maria — no longer available'},
+];
 function renderRecs(){
-  const recsList=D.filter(d=>d.t==='single'&&d.overlap===false&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,8);
-  document.getElementById('recs').innerHTML = recsList.map((d,i)=>`
-    <div class="rec">
-      <div class="rh"><div class="rn">${i+1}. ${d.name}</div><div class="stars">★★★</div></div>
-      <div class="city">${d.cities}</div>
-      <div class="stats">
-        <div><b>${fmtMoney(d.rev)}</b><span>Revenue</span></div>
-        <div><b>${pctOrDash(ebMargin(d),0)}</b><span>EBITDA mgn</span></div>
-        <div><b>${d.score}/100</b><span>Score</span></div>
-      </div>
-      <div class="meta">no overlap · gross profit ${fmtMoney(d.ebt)} ${CUR()}</div>
-    </div>`).join('');
+  document.getElementById('recs').innerHTML = RECS.map((r,i)=>{
+    const d=byName(r.n); if(!d) return '';
+    const fin = d.rev!=null
+      ? `<div class="stats"><div><b>${fmtMoney(d.rev)}</b><span>Revenue</span></div><div><b>${pctOrDash(ebMargin(d),0)}</b><span>EST. EBITDA mgn</span></div></div>`
+      : '';
+    return `<div class="rec${r.cls==='sold'?' soldrec':''}">
+      <div class="rh"><div class="rn">${i+1}. ${d.name}</div><span class="tag ${r.cls}">${r.tag}</span></div>
+      <div class="city">${d.cities}${d.overlap?' · Medima present':''}</div>
+      ${fin}
+      <div class="meta">${r.note}</div>
+    </div>`;
+  }).join('');
 }
 
 // ---------- acquisition scenarios ----------
@@ -587,7 +607,7 @@ document.getElementById('foot').innerHTML=
  'Financials sourced from <strong>ANAF (Romanian Ministry of Finance)</strong> statutory filings for the selected fiscal year (use the FY2025 / FY2024 toggle), in <strong>RON</strong>; each company verified by CUI. '+
  '“Gross profit” = <em>Profit brut</em> (pre-tax result, ANAF indicator I16; losses shown negative). Debt = <em>DATORII</em> (I7). '+
  'Score = weighted average of gross profit (50%, vs the pipeline maximum for that year), avg revenue growth (20%), avg gross-profit growth (20%) and debt health (10%), recomputed in-page. '+
- '<strong>EBITDA shown is an estimate</strong> (gross profit ÷ 0.7) pending per-company D&A + finance-cost add-backs. EUR figures use the BNR reference rate at 1 Jan of each year (FY2024 = 4.9746, FY2025 = 4.9741 RON/€). “N” prefix marks multi-city networks. '+
+ '<strong>* EST. EBITDA is an estimate</strong> (gross profit ÷ 0.7, or a company-specific factor) <strong>capped at a realistic ceiling</strong>: single / ≤2-clinic companies max 50% of revenue, networks with &gt;2 clinics max 40%. Pending per-company D&A + finance-cost add-backs. EUR figures use the BNR reference rate at 1 Jan of each year (FY2024 = 4.9746, FY2025 = 4.9741 RON/€). “N” prefix marks multi-city networks. '+
  '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”. Eldarad Med and Pro Medical have not filed 2025 (blank on the FY2025 tab).';
 
 // ---------- init / full refresh ----------
