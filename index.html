@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medima — M&A Pipeline Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --purple:#6d28d9; --purple-light:#7c3aed; --teal:#0d9488; --teal-light:#14b8a6;
+    --bg:#f6f5fb; --card:#ffffff; --ink:#1f2238; --muted:#6b7280; --line:#ece9f5;
+    --pos:#0d9488; --neg:#dc2626; --warn:#d97706;
+    --row-alt:#faf9fe; --shadow:0 1px 3px rgba(40,30,80,.06),0 8px 24px rgba(40,30,80,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  .wrap{max-width:1280px;margin:0 auto;padding:24px 20px 60px}
+  /* sticky header + tabs */
+  .stickytop{position:sticky;top:0;z-index:60;background:var(--bg);padding-top:16px;margin-top:-24px;box-shadow:0 10px 18px -12px rgba(40,30,80,.28);border-bottom:1px solid var(--line)}
+  .stickytop .controls{margin-bottom:14px}
+  /* header */
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:4px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--teal-light));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px}
+  h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.2px}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .pill{background:#efeafc;color:var(--purple);border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600}
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:22px 0}
+  .kpi{background:var(--card);border-radius:14px;padding:16px 16px 14px;box-shadow:var(--shadow);border:1px solid var(--line);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--purple)}
+  .kpi:nth-child(2)::before{background:var(--teal)}
+  .kpi:nth-child(3)::before{background:var(--purple-light)}
+  .kpi:nth-child(4)::before{background:var(--teal-light)}
+  .kpi:nth-child(5)::before{background:#a78bfa}
+  .kpi .v{font-size:26px;font-weight:800;letter-spacing:-.5px}
+  .kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;font-weight:600}
+  .kpi .d{font-size:11.5px;color:var(--muted);margin-top:6px}
+  /* panels */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+  .panel{background:var(--card);border-radius:14px;padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+  .panel h2{font-size:14px;margin:0 0 2px;font-weight:700}
+  .panel .ph{color:var(--muted);font-size:12px;margin-bottom:12px}
+  .chart-box{height:300px;position:relative}
+  /* methodology */
+  details.method{background:var(--card);border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:18px;padding:0 18px}
+  details.method summary{cursor:pointer;list-style:none;padding:15px 0;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+  details.method summary::-webkit-details-marker{display:none}
+  details.method summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s}
+  details.method[open] summary .chev{transform:rotate(180deg)}
+  .meth-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:0 0 18px}
+  .meth-c{border-left:3px solid var(--purple);padding:2px 0 2px 12px}
+  .meth-c .w{font-weight:800;color:var(--purple);font-size:13px}
+  .meth-c .t{font-weight:600;font-size:12.5px;margin:2px 0 4px}
+  .meth-c .x{color:var(--muted);font-size:11.5px;line-height:1.4}
+  /* controls */
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap}
+  .tab{border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .tab:hover{border-color:#cbb9f0}
+  .tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+  .tab .n{opacity:.7;font-weight:700;margin-left:3px}
+  .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;min-width:210px;outline:none;background:var(--card)}
+  .search:focus{border-color:var(--purple)}
+  /* table */
+  .tbl-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  thead th{text-align:right;padding:13px 10px;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+  thead th.l{text-align:left}
+  thead th:hover{color:var(--purple)}
+  thead th .ar{opacity:.5;font-size:9px}
+  tbody td{padding:11px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td.l{text-align:left}
+  tbody tr:nth-child(even){background:var(--row-alt)}
+  tbody tr:hover{background:#f1edfb}
+  .rank{color:var(--muted);font-weight:600}
+  .co{font-weight:700;color:var(--ink)}
+  .cities{color:var(--muted);font-size:11px;white-space:normal;max-width:240px;line-height:1.35}
+  .pos{color:var(--pos);font-weight:600}
+  .neg{color:var(--neg);font-weight:600}
+  .muted2{color:var(--muted)}
+  .score-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end;font-weight:800}
+  .bar{width:54px;height:7px;border-radius:4px;background:#eee;overflow:hidden;flex-shrink:0}
+  .bar i{display:block;height:100%;border-radius:4px}
+  .ov{display:inline-block;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .ov.yes{background:#fdecef;color:#be123c}
+  .ov.no{background:#dcf7f1;color:#0d8a76}
+  .ov.na{background:#eee;color:#999}
+  .badge{display:inline-block;background:#fef3c7;color:#92400e;font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:6px;vertical-align:middle}
+  /* recommendations */
+  .rec-head{margin:30px 0 14px}
+  .rec-head h2{font-size:16px;margin:0}
+  .rec-head .ph{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .recs{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .rec{background:var(--card);border-radius:12px;padding:14px;box-shadow:var(--shadow);border:1px solid var(--line);border-top:3px solid var(--teal)}
+  .rec .rh{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+  .rec .rn{font-weight:700;font-size:13.5px}
+  .rec .stars{color:var(--teal-light);font-size:12px;letter-spacing:1px;flex-shrink:0}
+  .rec .city{color:var(--muted);font-size:11.5px;margin:2px 0 9px}
+  .rec .stats{display:flex;gap:12px;font-size:11.5px}
+  .rec .stats b{display:block;color:var(--purple);font-size:13px}
+  .rec .stats span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.3px}
+  .rec .meta{margin-top:9px;color:var(--muted);font-size:10.5px;border-top:1px dashed var(--line);padding-top:7px}
+  /* scenarios */
+  .scn-head{margin:34px 0 6px}
+  .scn-head h2{font-size:16px;margin:0}
+  .scn-head .ph{color:var(--muted);font-size:12.5px;margin:3px 0 16px;line-height:1.5}
+  .scns{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .scn{background:var(--card);border-radius:14px;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  .scn .sh{padding:15px 16px 14px;border-bottom:1px solid var(--line)}
+  .scn .sh .tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;background:var(--purple);border-radius:999px;padding:3px 10px;display:inline-block}
+  .scn:nth-child(2) .sh .tag{background:var(--teal)}
+  .scn:nth-child(3) .sh .tag{background:#a78bfa}
+  .scn .sh h3{margin:9px 0 3px;font-size:15px}
+  .scn .sh p{margin:0;color:var(--muted);font-size:11.5px;line-height:1.45}
+  .scn .deals{padding:4px 16px}
+  .scn .deal{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12px}
+  .scn .deal:last-child{border-bottom:none}
+  .scn .deal .yr{font-size:9.5px;font-weight:700;color:var(--purple);background:#f1eefb;border-radius:5px;padding:2px 6px;flex-shrink:0}
+  .scn .deal .dn{flex:1;font-weight:600;line-height:1.25}
+  .scn .deal .dn small{display:block;color:var(--muted);font-weight:400;font-size:10.5px}
+  .scn .deal .de{text-align:right;font-weight:700;white-space:nowrap}
+  .scn .deal .de small{display:block;color:var(--teal);font-weight:600;font-size:10px}
+  .scn .tot{background:var(--row-alt);padding:14px 16px;border-top:1px solid var(--line);margin-top:auto}
+  .scn .tot .big{font-size:22px;font-weight:800;color:var(--purple);letter-spacing:-.5px}
+  .scn .tot .big small{font-size:11px;color:var(--muted);font-weight:600}
+  .scn .band{height:9px;border-radius:5px;background:#ececf3;margin:11px 0 5px;position:relative;overflow:visible}
+  .scn .band i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:5px}
+  .scn .band .min{position:absolute;top:-3px;height:15px;width:2px;background:#dc2626;left:50%}
+  .scn .bl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+  .scn .ok{font-size:11px;margin-top:8px;color:var(--teal);font-weight:700}
+  #scnTabs{margin:2px 0 16px}
+  .scns.single{grid-template-columns:minmax(0,460px)}
+  @media(max-width:1000px){.scns{grid-template-columns:1fr}.scns.single{grid-template-columns:1fr}}
+  .foot{color:var(--muted);font-size:11px;margin-top:26px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+  @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.meth-grid{grid-template-columns:repeat(2,1fr)}.recs{grid-template-columns:repeat(2,1fr)}.search{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="stickytop">
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">M</div>
+      <div>
+        <h1>Medima — M&A Pipeline</h1>
+        <div class="sub">Business Development Strategy 2027–2031 · Reconstructed dashboard</div>
+      </div>
+    </div>
+    <div class="pill">M&A Pipeline</div>
+  </div>
+
+  <div class="controls">
+    <div class="tabs" id="ovTabs">
+      <button class="tab active" data-ov="all">All <span class="n" id="cAll"></span></button>
+      <button class="tab" data-ov="no">No-overlap <span class="n" id="cNo"></span></button>
+      <button class="tab" data-ov="yes">Overlap <span class="n" id="cYes"></span></button>
+    </div>
+    <div class="tabs" id="tyTabs">
+      <button class="tab active" data-ty="all">All types</button>
+      <button class="tab" data-ty="single">Single-City <span class="n" id="cSingle"></span></button>
+      <button class="tab" data-ty="network">Networks <span class="n" id="cNetw"></span></button>
+    </div>
+    <input class="search" id="search" placeholder="Search company or city…">
+  </div>
+  </div><!-- /stickytop -->
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">67</div><div class="l">Total Pipeline</div><div class="d">Companies screened</div></div>
+    <div class="kpi"><div class="v">7.3M €</div><div class="l">EBT Total 2024</div><div class="d">90% of acquisition value</div></div>
+    <div class="kpi"><div class="v">10</div><div class="l">Networks (multi-city)</div><div class="d">57 single-city targets</div></div>
+    <div class="kpi"><div class="v">31</div><div class="l">Top · No Overlap</div><div class="d">No Medima presence</div></div>
+    <div class="kpi"><div class="v">4</div><div class="l">Score Components</div><div class="d">Weighted 0–100 model</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>Top 5 Networks (multi-city)</h2>
+      <div class="ph">Composite score (1–100)</div>
+      <div class="chart-box"><canvas id="chNet"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Top 10 Single-City Companies</h2>
+      <div class="ph">Composite score (1–100)</div>
+      <div class="chart-box"><canvas id="chSingle"></canvas></div>
+    </div>
+  </div>
+
+  <details class="method" open>
+    <summary>Scoring methodology — each component 0–100, weighted average <span class="chev">▾</span></summary>
+    <div class="meth-grid">
+      <div class="meth-c"><div class="w">EBT 2024 · 50%</div><div class="t">Profitability size</div><div class="x">Absolute 2024 EBT, scored relative to the highest EBT in the pipeline (≈3.48M € = 100). Prioritises profitable, sizeable targets.</div></div>
+      <div class="meth-c"><div class="w">Avg Revenue Growth · 20%</div><div class="t">Top-line momentum</div><div class="x">Average of annual YoY revenue growth across 2021→22, 2022→23, 2023→24.</div></div>
+      <div class="meth-c"><div class="w">Avg EBT Growth · 20%</div><div class="t">Profit momentum</div><div class="x">Average of annual YoY EBT growth across 2021→22, 2022→23, 2023→24.</div></div>
+      <div class="meth-c"><div class="w">Debt Health · 10%</div><div class="t">Balance-sheet risk</div><div class="x">Debt / EBT 2024. Below 5× excellent, 5–10× caution, above 10× or negative a red flag.</div></div>
+    </div>
+  </details>
+
+  <div class="tbl-wrap">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="rankDisp" class="l">#</th>
+        <th data-k="name" class="l">Company</th>
+        <th data-k="cities" class="l">Cities</th>
+        <th data-k="loc">Loc</th>
+        <th data-k="rev">Rev 2024</th>
+        <th data-k="ebt">EBT 2024</th>
+        <th data-k="margin">EBT Margin</th>
+        <th data-k="revG">Avg Rev Gr.</th>
+        <th data-k="ebtG">Avg EBT Gr.</th>
+        <th data-k="debt">Debt/EBT</th>
+        <th data-k="score">Score <span class="ar">▼</span></th>
+        <th data-k="overlap">Overlap</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="rec-head">
+    <h2>Top M&A Recommendations — No Medima Overlap</h2>
+    <div class="ph">Highest priority: profitable single-city targets in cities where Medima has no presence</div>
+  </div>
+  <div class="recs" id="recs"></div>
+
+  <div class="scn-head">
+    <h2>Acquisition Scenarios — Path to ≥ 2M € EBITDA by end-2028</h2>
+    <div class="ph">Mandate: acquire 2M–4M € EBITDA across 2027–2028. EBT ≈ 70% of EBITDA, so the target equals <strong>1.4M–2.8M € of cumulative EBT</strong> from the pipeline. Three routes, all clearing the 2M EBITDA floor.</div>
+  </div>
+  <div class="tabs" id="scnTabs">
+    <button class="tab active" data-scn="all">Compare all</button>
+    <button class="tab" data-scn="0">1 · Anchor</button>
+    <button class="tab" data-scn="1">2 · Balanced</button>
+    <button class="tab" data-scn="2">3 · No-overlap</button>
+  </div>
+  <div class="scns" id="scns"></div>
+
+  <div class="foot" id="foot"></div>
+
+</div>
+
+<script>
+// type: 'network' | 'single'. overlap: true/false/null. growth values in %, null = n/a. debt null = negative/n.a.
+const D = [
+ // ---- NETWORKS (top 10 shown) ----
+ {t:'network',r:1,name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,rev:12300000,ebt:3500000,margin:28.2,revG:59.2,ebtG:74.1,debt:2.0,score:95.3,overlap:true},
+ {t:'network',r:2,name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,rev:11200000,ebt:2800000,margin:25,revG:14.5,ebtG:31.7,debt:1.5,score:74.4,overlap:true},
+ {t:'network',r:3,name:'Memormed',cities:'București – Unirii, Bd. A.I. Cuza, Cotroceni +2',loc:5,rev:6000000,ebt:551000,margin:9.2,revG:76.7,ebtG:5.3,debt:1.9,score:43.1,overlap:true,flag:'Outpatients'},
+ {t:'network',r:4,name:'Dorna Medical',cities:'Vatra Dornei, Fălticeni, Rădăuți +4',loc:7,rev:16200000,ebt:334000,margin:2.1,revG:6.6,ebtG:105.3,debt:26.4,score:35.4,overlap:false},
+ {t:'network',r:5,name:'Raze Medical Center',cities:'Oradea, Oradea',loc:2,rev:766000,ebt:131000,margin:17.1,revG:546.8,ebtG:null,debt:0.8,score:31.9,overlap:true},
+ {t:'network',r:6,name:'Diagnostica',cities:'Sibiu, Brașov, Făgăraș +2',loc:5,rev:5900000,ebt:55000,margin:0.9,revG:35.5,ebtG:3.8,debt:16.1,score:26.0,overlap:true},
+ {t:'network',r:7,name:'RMN Diagnostica / Med House (Dexa)',cities:'Sibiu, Brașov, Făgăraș +2',loc:5,rev:5900000,ebt:55000,margin:0.9,revG:35.5,ebtG:3.8,debt:16.1,score:26.0,overlap:true},
+ {t:'network',r:8,name:'M Imagistica',cities:'M Hospital, Veranda Mall, Afi Cotroceni +2',loc:5,rev:7800000,ebt:64000,margin:0.8,revG:104.0,ebtG:null,debt:115.1,score:21.4,overlap:true},
+ {t:'network',r:9,name:'Emerald',cities:'București, Iași, Timișoara',loc:3,rev:3000000,ebt:-575995,margin:-19,revG:30.1,ebtG:-891.0,debt:null,score:15.8,overlap:true},
+ {t:'network',r:10,name:'Medicales',cities:'București – Izvor, Dorobanți, Pantelimon +5',loc:8,rev:4200000,ebt:-376690,margin:-8.9,revG:18.5,ebtG:-276.2,debt:null,score:13.3,overlap:true},
+ // ---- SINGLE-CITY (1–57) ----
+ {t:'single',r:1,name:'Eureka',cities:'București',loc:1,rev:2800000,ebt:1500000,margin:51.2,revG:36.3,ebtG:57.3,debt:1.6,score:63.1,overlap:true},
+ {t:'single',r:2,name:'DoinaMed',cities:'Râmnicu Vâlcea',loc:1,rev:638000,ebt:422000,margin:66.1,revG:291.1,ebtG:218.3,debt:0.7,score:56.0,overlap:false},
+ {t:'single',r:3,name:'Korall',cities:'Satu Mare',loc:1,rev:3900000,ebt:846000,margin:21.6,revG:38.1,ebtG:77.7,debt:2.4,score:55.3,overlap:true},
+ {t:'single',r:4,name:'Lotus Image',cities:'Târgu Mureș',loc:1,rev:3000000,ebt:1100000,margin:35.9,revG:15.4,ebtG:34.0,debt:0.5,score:52.5,overlap:true},
+ {t:'single',r:5,name:'Med Expert',cities:'București',loc:1,rev:1300000,ebt:398000,margin:30.5,revG:65.9,ebtG:172.9,debt:1.1,score:52.4,overlap:true},
+ {t:'single',r:6,name:'Centrul Medical Brâncuși',cities:'București',loc:1,rev:5400000,ebt:1200000,margin:22.9,revG:19.3,ebtG:18.3,debt:1.2,score:50.6,overlap:true},
+ {t:'single',r:7,name:'ALFA Polyclinics',cities:'București',loc:1,rev:5300000,ebt:996000,margin:18.9,revG:24.8,ebtG:24.0,debt:1.7,score:50.0,overlap:true},
+ {t:'single',r:8,name:'Atlas Imagistica',cities:'Târgu Mureș',loc:1,rev:1700000,ebt:227000,margin:13.1,revG:99.2,ebtG:387.0,debt:4.8,score:49.2,overlap:true},
+ {t:'single',r:9,name:'Clinica Laser System',cities:'Arad',loc:1,rev:6300000,ebt:1200000,margin:19,revG:19.0,ebtG:22.6,debt:3.6,score:49.2,overlap:true},
+ {t:'single',r:10,name:'Recumed',cities:'Vaslui',loc:1,rev:5200000,ebt:970000,margin:18.7,revG:13.0,ebtG:32.7,debt:1.9,score:48.0,overlap:true},
+ {t:'single',r:11,name:'Tonic Medical Center',cities:'Bârlad',loc:1,rev:1800000,ebt:344000,margin:19.5,revG:74.1,ebtG:125.1,debt:6.4,score:47.9,overlap:false},
+ {t:'single',r:12,name:'Centru de Diagnostic Lux-Ro',cities:'Botoșani',loc:1,rev:1900000,ebt:322000,margin:17,revG:25.9,ebtG:49.2,debt:0.5,score:46.7,overlap:true},
+ {t:'single',r:13,name:'Centrul Medical Humanitas',cities:'București',loc:1,rev:1700000,ebt:214000,margin:12.5,revG:23.9,ebtG:107.7,debt:2.0,score:44.8,overlap:true},
+ {t:'single',r:14,name:'Scanmed',cities:'București',loc:1,rev:3000000,ebt:376000,margin:12.6,revG:215.5,ebtG:32.3,debt:5.1,score:44.6,overlap:true},
+ {t:'single',r:15,name:'RMN Imagistica',cities:'Timișoara',loc:1,rev:976000,ebt:372000,margin:38.1,revG:40.9,ebtG:28.9,debt:1.4,score:44.5,overlap:false},
+ {t:'single',r:16,name:'Natisan Medicina Generala',cities:'Pitești',loc:1,rev:3200000,ebt:413000,margin:13,revG:23.4,ebtG:35.1,debt:2.3,score:43.1,overlap:false},
+ {t:'single',r:17,name:'Clubul Sănătății',cities:'Câmpulung Muscel',loc:1,rev:1500000,ebt:263000,margin:17.9,revG:13.9,ebtG:168.1,debt:2.3,score:42.8,overlap:false},
+ {t:'single',r:18,name:'Centrul Medical Progresul',cities:'București',loc:1,rev:2000000,ebt:351000,margin:17.5,revG:17.2,ebtG:33.6,debt:0.8,score:42.4,overlap:true},
+ {t:'single',r:19,name:'Onioptic Medical (3 orașe)',cities:'Craiova',loc:1,rev:1100000,ebt:272000,margin:25.1,revG:18.8,ebtG:48.7,debt:2.1,score:42.0,overlap:true},
+ {t:'single',r:20,name:'Clinicile Medimagis',cities:'Iași',loc:1,rev:1100000,ebt:116000,margin:10.8,revG:75.3,ebtG:72.6,debt:11.6,score:41.6,overlap:false},
+ {t:'single',r:21,name:'Clinica Vitality',cities:'Odorheiu Secuiesc',loc:1,rev:1400000,ebt:56000,margin:3.9,revG:62.9,ebtG:219.1,debt:17.3,score:41.3,overlap:false},
+ {t:'single',r:22,name:'Alpha Clinic (3 orașe, 5 clinici)',cities:'Oltenița',loc:1,rev:4600000,ebt:563000,margin:12.2,revG:19.9,ebtG:18.5,debt:1.9,score:41.0,overlap:false},
+ {t:'single',r:23,name:'Centrul Medical Polimed Dacia',cities:'Brașov',loc:1,rev:2400000,ebt:106000,margin:4.5,revG:32.0,ebtG:108.4,debt:6.2,score:40.6,overlap:false},
+ {t:'single',r:24,name:'Balneomed',cities:'Râmnicu Vâlcea',loc:1,rev:3900000,ebt:349000,margin:8.8,revG:20.2,ebtG:28.2,debt:2.4,score:40.2,overlap:false},
+ {t:'single',r:25,name:'Arhimed Radiology',cities:'Iași',loc:1,rev:1000000,ebt:209000,margin:20.4,revG:12.7,ebtG:82.5,debt:3.7,score:39.0,overlap:false},
+ {t:'single',r:26,name:'Clinica Luxor',cities:'Bacău',loc:1,rev:1800000,ebt:260000,margin:14.8,revG:20.3,ebtG:24.8,debt:2.5,score:38.4,overlap:true},
+ {t:'single',r:27,name:'Romrad',cities:'Drobeta-Turnu Severin',loc:1,rev:655000,ebt:331000,margin:50.5,revG:21.0,ebtG:12.0,debt:0.9,score:38.2,overlap:false},
+ {t:'single',r:28,name:'Teoclinik',cities:'Vaslui',loc:1,rev:2000000,ebt:138000,margin:7,revG:13.8,ebtG:88.7,debt:5.8,score:36.6,overlap:true},
+ {t:'single',r:29,name:'Medical Delta',cities:'Tulcea',loc:1,rev:232000,ebt:135000,margin:58.1,revG:30.6,ebtG:8.0,debt:0.1,score:36.1,overlap:true},
+ {t:'single',r:30,name:'Medimar',cities:'Constanța',loc:1,rev:3700000,ebt:925000,margin:25,revG:2.1,ebtG:-7.9,debt:0.8,score:34.6,overlap:false},
+ {t:'single',r:31,name:'Victoria Imagistic',cities:'Iași',loc:1,rev:772000,ebt:330000,margin:42.7,revG:12.8,ebtG:7.4,debt:0.3,score:34.5,overlap:false},
+ {t:'single',r:32,name:'Sanovil',cities:'Bistrița',loc:1,rev:5500000,ebt:765000,margin:13.8,revG:14.8,ebtG:-0.3,debt:3.3,score:34.2,overlap:true},
+ {t:'single',r:33,name:'Clinica Medical Pallady',cities:'București',loc:1,rev:967000,ebt:348000,margin:36,revG:228.9,ebtG:null,debt:2.2,score:33.0,overlap:true},
+ {t:'single',r:34,name:'Centrul Medical DoctorMed',cities:'Constanța',loc:1,rev:500000,ebt:96000,margin:19.1,revG:28.9,ebtG:-12.0,debt:0.6,score:29.6,overlap:false},
+ {t:'single',r:35,name:'Apex Imagistic',cities:'Suceava',loc:1,rev:1400000,ebt:323000,margin:22.8,revG:240.0,ebtG:null,debt:6.0,score:28.6,overlap:false},
+ {t:'single',r:36,name:'Interservisan',cities:'Cluj-Napoca',loc:1,rev:3500000,ebt:39000,margin:1.1,revG:3.3,ebtG:163.2,debt:30.2,score:28.4,overlap:false},
+ {t:'single',r:37,name:'Star Medica',cities:'Satu Mare',loc:1,rev:317000,ebt:532,margin:0.2,revG:62.1,ebtG:5.3,debt:81.2,score:27.1,overlap:true},
+ {t:'single',r:38,name:'Neuroaxis',cities:'București',loc:1,rev:3400000,ebt:262000,margin:7.7,revG:56.0,ebtG:-121.3,debt:7.1,score:26.0,overlap:true},
+ {t:'single',r:39,name:'Clinical Image',cities:'Timișoara',loc:1,rev:438000,ebt:132000,margin:30.1,revG:2.6,ebtG:-0.3,debt:0.5,score:24.9,overlap:false},
+ {t:'single',r:40,name:'Life Scan',cities:'Târgu Jiu',loc:1,rev:788000,ebt:334000,margin:42.4,revG:-2.6,ebtG:-12.4,debt:0.2,score:23.8,overlap:true},
+ {t:'single',r:41,name:'SPAD',cities:'Craiova',loc:1,rev:2400000,ebt:265000,margin:11.3,revG:13.4,ebtG:-19.2,debt:3.6,score:23.5,overlap:true},
+ {t:'single',r:42,name:'Elytis',cities:'Iași',loc:1,rev:14700000,ebt:26000,margin:0.2,revG:44.1,ebtG:-3.9,debt:481.3,score:23.1,overlap:false},
+ {t:'single',r:43,name:'Clinica Grama',cities:'Baia Mare',loc:1,rev:426000,ebt:104000,margin:24.5,revG:18.0,ebtG:2.2,debt:28.0,score:22.5,overlap:true},
+ {t:'single',r:44,name:'Provita Pain Clinic',cities:'Scheia',loc:1,rev:1700000,ebt:-37325,margin:-2.2,revG:877.5,ebtG:null,debt:null,score:21.0,overlap:false},
+ {t:'single',r:45,name:'Medview Centru Medical',cities:'Cluj-Napoca',loc:1,rev:558000,ebt:-578537,margin:-103.7,revG:468.2,ebtG:null,debt:null,score:21.0,overlap:false},
+ {t:'single',r:46,name:'SelfMed Clinique',cities:'Timișoara',loc:1,rev:185000,ebt:44000,margin:23.8,revG:48.9,ebtG:-105.2,debt:11.0,score:20.5,overlap:false},
+ {t:'single',r:47,name:'Publiconstruct',cities:'Iași',loc:1,rev:4000000,ebt:232000,margin:5.9,revG:38.5,ebtG:-845.0,debt:98.1,score:20.0,overlap:false},
+ {t:'single',r:48,name:'H-Medical',cities:'Hunedoara',loc:1,rev:567000,ebt:131000,margin:23.1,revG:-0.3,ebtG:-14.6,debt:2.1,score:18.9,overlap:false},
+ {t:'single',r:49,name:'Multimedica',cities:'Turda',loc:1,rev:297000,ebt:10000,margin:3.2,revG:10.6,ebtG:-7.8,debt:22.2,score:16.7,overlap:false},
+ {t:'single',r:50,name:'Single-city target #50',cities:'— not legible in source screenshot —',loc:1,rev:null,ebt:null,margin:null,revG:null,ebtG:null,debt:null,score:null,overlap:null,missing:true},
+ {t:'single',r:51,name:'Medinst',cities:'București',loc:1,rev:1600000,ebt:-225929,margin:-13.9,revG:9.8,ebtG:-312.4,debt:null,score:10.9,overlap:true},
+ {t:'single',r:52,name:'Pro Vitam (4 orașe)',cities:'Sfântu Gheorghe',loc:1,rev:1200000,ebt:61000,margin:4.9,revG:-21.0,ebtG:-8.1,debt:27.0,score:9.9,overlap:false},
+ {t:'single',r:53,name:'Medical Imaging Concept',cities:'Câmpina',loc:1,rev:639000,ebt:3000,margin:0.5,revG:2.5,ebtG:-42.2,debt:126.8,score:9.0,overlap:false},
+ {t:'single',r:54,name:'Eldarad Med',cities:'Târgu Cărbunești',loc:1,rev:497000,ebt:7000,margin:1.4,revG:1.6,ebtG:-42.6,debt:58.7,score:8.7,overlap:false},
+ {t:'single',r:55,name:'Pro Medical',cities:'Cluj-Napoca',loc:1,rev:null,ebt:null,margin:null,revG:null,ebtG:null,debt:null,score:5.0,overlap:false},
+ {t:'single',r:56,name:'Novalife Clinics',cities:'București',loc:1,rev:null,ebt:null,margin:null,revG:null,ebtG:null,debt:null,score:5.0,overlap:true},
+ {t:'single',r:57,name:'Central Medical Galenus',cities:'Târgu Mureș',loc:1,rev:1100000,ebt:2000,margin:0.2,revG:-15.0,ebtG:-62.1,debt:490.0,score:3.5,overlap:true},
+];
+
+const RECS = [
+ {n:'DoinaMed',c:'Râmnicu Vâlcea',rev:'638K',m:'66.1%',s:56,emp:20,db:'D&B Outpatients'},
+ {n:'Tonic Medical Center',c:'Bârlad',rev:'1.8M',m:'19.5%',s:48,emp:29,db:'DI'},
+ {n:'RMN Imagistica',c:'Timișoara',rev:'976K',m:'38.1%',s:45,emp:7,db:'DI'},
+ {n:'Natisan Medicina Generala',c:'Pitești',rev:'3.2M',m:'13%',s:43,emp:36,db:'D&B Outpatients'},
+ {n:'Clubul Sănătății',c:'Câmpulung Muscel',rev:'1.5M',m:'17.9%',s:43,emp:26,db:'D&B Outpatients'},
+ {n:'Clinicile Medimagis',c:'Iași',rev:'1.1M',m:'10.8%',s:42,emp:19,db:'DI'},
+ {n:'Clinica Vitality',c:'Odorheiu Secuiesc',rev:'1.4M',m:'3.9%',s:41,emp:21,db:'DI'},
+ {n:'Alpha Clinic (3 orașe, 5 clinici)',c:'Oltenița',rev:'4.6M',m:'12.2%',s:40,emp:86,db:'D&B Outpatients'},
+];
+
+// ---------- helpers ----------
+const fmtEUR = v => v==null ? '—' : (Math.abs(v)>=1e6 ? (v/1e6).toFixed(1).replace('.0','')+'M' : Math.abs(v)>=1e3 ? Math.round(v/1e3)+'K' : ''+v);
+const fmtPct = v => v==null ? '<span class="muted2">–</span>' : `<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${v}%</span>`;
+const fmtDebt = (v,missing) => missing ? '—' : v==null ? '<span class="neg">neg.</span>' : v+'×';
+const scoreColor = s => s>=60 ? '#0d9488' : s>=40 ? '#d4a017' : s>=25 ? '#e07a5f' : '#dc2626';
+
+// ---------- charts ----------
+const topNet = D.filter(d=>d.t==='network').slice(0,5);
+const topSingle = D.filter(d=>d.t==='single'&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,10);
+function hbar(id,rows,color){
+  if(typeof Chart==='undefined'){fallbackBars(id,rows,color);return;}
+  new Chart(document.getElementById(id),{type:'bar',data:{labels:rows.map(r=>r.name),
+    datasets:[{data:rows.map(r=>r.score),backgroundColor:color,borderRadius:5,barThickness:rows.length>6?14:20}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>'Score '+c.parsed.x}}},
+      scales:{x:{beginAtZero:true,max:100,grid:{color:'#f0eef8'},ticks:{font:{size:10}}},
+              y:{grid:{display:false},ticks:{font:{size:10.5},color:'#444'}}}}});
+}
+// pure-HTML fallback if the Chart.js CDN is blocked (e.g. opened offline)
+function fallbackBars(id,rows,color){
+  const cv=document.getElementById(id); const box=cv.parentElement;
+  box.innerHTML=rows.map(r=>`<div style="display:flex;align-items:center;gap:8px;margin:7px 0;font-size:11.5px">
+    <div style="width:120px;text-align:right;color:#444;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div>
+    <div style="flex:1;background:#f0eef8;border-radius:4px;height:14px"><div style="width:${r.score}%;height:100%;background:${color};border-radius:4px"></div></div>
+    <div style="width:34px;font-weight:700;color:${color}">${r.score}</div></div>`).join('');
+  box.style.height='auto';
+}
+try{ hbar('chNet',topNet,'#6d28d9'); hbar('chSingle',topSingle,'#0d9488'); }catch(e){ console.error(e); }
+
+// ---------- recommendations ----------
+document.getElementById('recs').innerHTML = RECS.map((r,i)=>`
+  <div class="rec">
+    <div class="rh"><div class="rn">${i+1}. ${r.n}</div><div class="stars">★★★</div></div>
+    <div class="city">${r.c}</div>
+    <div class="stats">
+      <div><b>${r.rev}</b><span>Revenue</span></div>
+      <div><b>${r.m}</b><span>Margin</span></div>
+      <div><b>${r.s}/100</b><span>Score</span></div>
+    </div>
+    <div class="meta">1 loc · ${r.emp} emp · ${r.db}</div>
+  </div>`).join('');
+
+// ---------- acquisition scenarios ----------
+const EBITDA_F = 1/0.7;                  // EBT ≈ 70% of EBITDA  →  EBITDA = EBT / 0.7
+const TARGET_MIN = 2_000_000, TARGET_MAX = 4_000_000;
+const SCN = [
+ {tag:'1 deal · fastest', name:'Anchor', desc:'One premium București asset clears the 2M floor in a single transaction. Lowest execution effort, highest concentration risk.',
+  deals:[['2027','Eureka']]},
+ {tag:'3 deals · balanced', name:'Balanced portfolio', desc:'Three mid-size, profitable clinics across different counties. Diversified risk, lands comfortably mid-band.',
+  deals:[['2027','Lotus Image'],['2027','Recumed'],['2028','Romrad']]},
+ {tag:'5 deals · whitespace', name:'No-overlap expansion', desc:'Five smaller targets in cities with no Medima presence (from the priority list). Maximises geographic footprint per euro.',
+  deals:[['2027','DoinaMed'],['2027','Natisan Medicina Generala'],['2027','RMN Imagistica'],['2028','Tonic Medical Center'],['2028','Clubul Sănătății']]},
+];
+const byName = n => D.find(d=>d.name===n);
+function buildCard(s){
+  let ebt=0;
+  const rows = s.deals.map(([yr,n])=>{
+    const c=byName(n); ebt+=c.ebt; const eb=c.ebt*EBITDA_F;
+    return `<div class="deal"><span class="yr">${yr}</span>
+      <div class="dn">${c.name}<small>${c.cities.split(',')[0]} · ${c.overlap?'overlap':'no overlap'}</small></div>
+      <div class="de">${fmtEUR(c.ebt)} EBT<small>${fmtEUR(eb)} EBITDA</small></div></div>`;
+  }).join('');
+  const ebitda=ebt*EBITDA_F, pct=Math.min(100,ebitda/TARGET_MAX*100);
+  return `<div class="scn">
+    <div class="sh"><span class="tag">${s.tag}</span><h3>${s.name}</h3><p>${s.desc}</p></div>
+    <div class="deals">${rows}</div>
+    <div class="tot">
+      <div class="big">${(ebitda/1e6).toFixed(2)}M <small>EBITDA · ${(ebt/1e6).toFixed(2)}M EBT</small></div>
+      <div class="band"><i style="width:${pct}%"></i><span class="min"></span></div>
+      <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">2M floor</span><span>4M cap</span></div>
+      <div class="ok">✓ ${(ebitda/1e6).toFixed(2)}M ≥ 2M minimum · ${s.deals.length} deal${s.deals.length>1?'s':''}</div>
+    </div></div>`;
+}
+const scnBox = document.getElementById('scns');
+function renderScn(sel){
+  if(sel==='all'){ scnBox.classList.remove('single'); scnBox.innerHTML = SCN.map(buildCard).join(''); }
+  else { scnBox.classList.add('single'); scnBox.innerHTML = buildCard(SCN[+sel]); }
+}
+document.querySelectorAll('#scnTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#scnTabs .tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); renderScn(b.dataset.scn);
+});
+renderScn('all');
+
+// ---------- table ----------
+let state={ov:'all',ty:'all',q:'',sort:'score',dir:-1};
+const tbody=document.getElementById('tbody');
+
+function counts(){
+  const real=D.filter(d=>d.overlap!=null);
+  document.getElementById('cAll').textContent='('+D.length+')';
+  document.getElementById('cNo').textContent='('+real.filter(d=>!d.overlap).length+')';
+  document.getElementById('cYes').textContent='('+real.filter(d=>d.overlap).length+')';
+  document.getElementById('cSingle').textContent='('+D.filter(d=>d.t==='single').length+')';
+  document.getElementById('cNetw').textContent='('+D.filter(d=>d.t==='network').length+')';
+}
+
+function render(){
+  let rows=D.filter(d=>{
+    if(state.ov==='no'&&d.overlap!==false)return false;
+    if(state.ov==='yes'&&d.overlap!==true)return false;
+    if(state.ty!=='all'&&d.t!==state.ty)return false;
+    if(state.q){const s=(d.name+' '+d.cities).toLowerCase();if(!s.includes(state.q))return false;}
+    return true;
+  });
+  rows.sort((a,b)=>{
+    let x=a[state.sort],y=b[state.sort];
+    if(state.sort==='name'||state.sort==='cities'){x=(x||'').toLowerCase();y=(y||'').toLowerCase();return x<y?-state.dir:x>y?state.dir:0;}
+    if(state.sort==='rankDisp'){x=a.r;y=b.r;}
+    x=x==null?-Infinity:x;y=y==null?-Infinity:y;
+    return (x-y)*state.dir;
+  });
+  tbody.innerHTML=rows.map(d=>{
+    const ov=d.overlap==null?'<span class="ov na">—</span>':d.overlap?'<span class="ov yes">YES</span>':'<span class="ov no">NO</span>';
+    const sc=d.score==null?'—':`<div class="score-cell"><div class="bar"><i style="width:${d.score}%;background:${scoreColor(d.score)}"></i></div><span style="color:${scoreColor(d.score)}">${d.score}</span></div>`;
+    const ebtCls=d.ebt!=null&&d.ebt<0?'neg':'';
+    return `<tr>
+      <td class="l rank">${d.t==='network'?'N':''}${d.r}</td>
+      <td class="l co">${d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
+      <td class="l cities">${d.cities}</td>
+      <td>${d.loc}</td>
+      <td>${d.missing?'—':fmtEUR(d.rev)}</td>
+      <td class="${ebtCls}">${d.missing?'—':fmtEUR(d.ebt)}</td>
+      <td>${d.margin==null?'—':d.margin+'%'}</td>
+      <td>${d.missing?'—':fmtPct(d.revG)}</td>
+      <td>${d.missing?'—':fmtPct(d.ebtG)}</td>
+      <td>${fmtDebt(d.debt,d.missing)}</td>
+      <td>${sc}</td>
+      <td>${ov}</td></tr>`;
+  }).join('');
+}
+
+document.querySelectorAll('#ovTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#ovTabs .tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.ov=b.dataset.ov;render();});
+document.querySelectorAll('#tyTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#tyTabs .tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');state.ty=b.dataset.ty;render();});
+document.getElementById('search').oninput=e=>{state.q=e.target.value.toLowerCase().trim();render();};
+document.querySelectorAll('thead th').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;if(state.sort===k)state.dir*=-1;else{state.sort=k;state.dir=(k==='name'||k==='cities')?1:-1;}
+  document.querySelectorAll('thead th .ar').forEach(a=>a.remove());
+  th.insertAdjacentHTML('beforeend',` <span class="ar">${state.dir<0?'▼':'▲'}</span>`);render();});
+
+counts();render();
+
+document.getElementById('foot').innerHTML=
+ 'Reconstructed from source dashboard screenshots (Medima — Business Development Strategy 2027–2031, M&A Pipeline). '+
+ 'Score = weighted average of EBT 2024 (50%), avg revenue growth (20%), avg EBT growth (20%) and debt health (10%). '+
+ '“N” prefix marks multi-city networks. <strong>Note:</strong> single-city rank #50 fell between source screenshots and was not legible, so its figures are shown as “—”. '+
+ 'Growth and debt values shown as “–” were not applicable in the source.';
+</script>
+</body>
+</html>

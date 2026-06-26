@@ -1,0 +1,7 @@
+# Screenshots & images (not part of the published site)
+*.png
+# Windows / OneDrive system files
+desktop.ini
+Thumbs.db
+# Editor/agent config
+.claude/
