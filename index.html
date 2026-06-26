@@ -118,6 +118,7 @@
   .tag.open{background:#fef3c7;color:#92400e}
   .tag.entry{background:#dbeafe;color:#1d4ed8}
   .tag.consol{background:#e0e7ff;color:#4338ca}
+  .tag.perf{background:#d1fae5;color:#047857}
   .tag.sold{background:#fdecef;color:#be123c}
   .rec.soldrec{opacity:.72;border-top-color:#dc2626}
   /* info tooltip */
@@ -292,7 +293,7 @@ const D = [
  {t:'network',name:'Memormed',cities:'București – Unirii, Bd. A.I. Cuza, Cotroceni +2',loc:5,overlap:true,flag:'Outpatients',cui:23052971,y:[[22051094,1832111,7220046],[29821469,2741582,5337567],[32108322,1493228,11853536]]},
  {t:'network',name:'Dorna Medical',cities:'Vatra Dornei, Fălticeni, Rădăuți +4',loc:7,overlap:false,cui:15978905,y:[[61886645,291222,22233897],[79157281,1660680,43835261],[93150095,9680943,36846145]]},
  {t:'network',name:'Raze Medical Center',cities:'Oradea',loc:2,overlap:true,cui:45331268,y:[[1584041,-210068,1072960],[3809728,650397,536137],[7702192,533624,2831605]]},
- {t:'network',name:'RMN Diagnostica / Med House (Dexa)',cities:'Sibiu, Brașov, Făgăraș +2',loc:5,overlap:true,flag:'≡ Diagnostica',cui:22621793,y:[[21632675,576375,3081368],[29276113,275816,4435025],[40042494,808002,11113087]]},
+ {t:'network',name:'RMN Diagnostica / Med House (Dexa)',cities:'Sibiu, Brașov, Făgăraș, Galați +2',loc:6,overlap:true,flag:'≡ Diagnostica',cui:22621793,y:[[21632675,576375,3081368],[29276113,275816,4435025],[40844409,1270525,13247372]]},
  {t:'network',name:'M Imagistica',cities:'M Hospital, Veranda Mall, Afi Cotroceni +2',loc:5,overlap:true,flag:'Hospital grp',cui:5854268,y:[[25186500,-5979373,23718128],[36387773,317565,36537130],[49303117,2672065,46994068]]},
  {t:'network',name:'Emerald',cities:'București, Iași, Timișoara',loc:3,overlap:true,cui:32001373,y:[[12670827,-1058590,19794199],[14881898,-2865347,20701940],[24754644,-3005576,23166768]]},
  {t:'network',name:'Medicales',cities:'București – Izvor, Dorobanți, Pantelimon +5',loc:8,overlap:true,cui:27991452,y:[[17458152,277662,37093257],[20721274,-1868905,57094590],[27301503,-9490746,65489753]]},
@@ -467,6 +468,8 @@ const RECS = [
  {n:'DoinaMed', tag:'New market', cls:'entry', note:'Want to enter Râmnicu Vâlcea'},
  {n:'Korall', tag:'Strengthen', cls:'consol', note:'Strengthen our presence in Satu Mare (overlap accepted)'},
  {n:'Medimar', tag:'New market', cls:'entry', note:'Want to enter Constanța'},
+ {n:'Eureka', tag:'Efficient', cls:'perf', note:'Over 1M EBITDA — highly efficient operator'},
+ {n:'Arhimed Radiology', tag:'Strengthen', cls:'consol', note:'Consolidate our position in Iași'},
 ];
 function renderRecs(){
   document.getElementById('recs').innerHTML = RECS.map((r,i)=>{
@@ -490,14 +493,14 @@ const SCN = [
   deals:[['2027','Scanexpert']]},
  {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). Very high revenue with a thinner margin and elevated debt — its 2025 gross profit has grown enough to clear the floor on its own (in 2024 it falls short).',
   deals:[['2027','Dorna Medical']]},
- {tag:'2 deals · anchor', name:'Anchor', desc:'One premium București asset (Eureka) plus Atlas (Târgu Mureș) — a live deal in discussion. Clears the floor with the lowest deal count; highest concentration risk.',
-  deals:[['2027','Eureka'],['2027','Atlas Imagistica','in talks']]},
- {tag:'4 deals · balanced', name:'Balanced portfolio', desc:'Mid-size, profitable clinics across different counties — including Atlas (Târgu Mureș, in discussion). Diversified risk, comfortably above the floor.',
-  deals:[['2027','Lotus Image'],['2027','Recumed'],['2028','Romrad'],['2027','Atlas Imagistica','in talks']]},
- {tag:'6 deals · whitespace', name:'No-overlap expansion', desc:'Five whitespace targets in cities with no Medima presence, plus Atlas (Târgu Mureș, in discussion) — the one overlap, included as a committed deal. Maximises geographic footprint per deal.',
-  deals:[['2027','DoinaMed'],['2027','Natisan Medicina Generala'],['2027','RMN Imagistica'],['2028','Tonic Medical Center'],['2028','Clubul Sănătății'],['2027','Atlas Imagistica','in talks']]},
- {tag:'7 deals · small clinics', name:'Small-clinic roll-up', desc:'Several small single-city clinics — including Atlas (Târgu Mureș, in discussion) — bundled to clear the floor with no large transaction. Highest execution count, widest geographic spread.',
-  deals:[['2027','Romrad'],['2027','Victoria Imagistic'],['2027','Med Expert'],['2028','Medical Delta'],['2028','Arhimed Radiology'],['2028','Clinica Medical Pallady'],['2028','Atlas Imagistica','in talks']]},
+ {tag:'2 deals · anchor', name:'Anchor', desc:'The two highest-EST.-EBITDA names on the recommendation list — Eureka (efficient, >1M EBITDA) and Korall (Satu Mare). Clears the floor in two transactions; highest concentration.',
+  deals:[['2027','Eureka'],['2027','Korall']]},
+ {tag:'4 deals · balanced', name:'Balanced portfolio', desc:'Four actively-pursued / new-market recommendations across four counties — Atlas (Mureș, in talks), Medimar (Constanța), Apex (Suceava), Arhimed (Iași). Diversified, all on the priority list.',
+  deals:[['2027','Atlas Imagistica','in talks'],['2027','Medimar'],['2028','Apex Imagistic'],['2028','Arhimed Radiology']]},
+ {tag:'6 deals · whitespace', name:'No-overlap expansion', desc:'Every recommended whitespace target — six cities with no Medima presence: Medimar (Constanța), Apex (Suceava), Medview (Cluj), Arhimed (Iași), DoinaMed (Vâlcea), Romrad (Drobeta).',
+  deals:[['2027','Medimar'],['2027','Apex Imagistic'],['2027','Medview Centru Medical'],['2028','Arhimed Radiology'],['2028','DoinaMed'],['2028','Romrad']]},
+ {tag:'5 deals · small clinics', name:'Small-clinic roll-up', desc:'The smallest-ticket recommended single-clinic targets — lowest capital per deal, widest spread; includes the Atlas live deal.',
+  deals:[['2027','DoinaMed'],['2027','Romrad'],['2027','Atlas Imagistica','in talks'],['2028','Arhimed Radiology'],['2028','Apex Imagistic']]},
 ];
 function buildCard(s){
   let ebt=0, rev=0, ebitda=0;
@@ -614,7 +617,7 @@ document.getElementById('foot').innerHTML=
  '“Gross profit” = <em>Profit brut</em> (pre-tax result, ANAF indicator I16; losses shown negative). Debt = <em>DATORII</em> (I7). '+
  'Score = weighted average of gross profit (50%, vs the pipeline maximum for that year), avg revenue growth (20%), avg gross-profit growth (20%) and debt health (10%), recomputed in-page. '+
  '<strong>* EST. EBITDA is an estimate</strong> (gross profit ÷ 0.7, or a company-specific factor) <strong>capped at a realistic ceiling</strong>: single / ≤2-clinic companies max 50% of revenue, networks with &gt;2 clinics max 40%. Pending per-company D&A + finance-cost add-backs. EUR figures use the BNR reference rate at 1 Jan of each year (FY2024 = 4.9746, FY2025 = 4.9741 RON/€). “N” prefix marks multi-city networks. '+
- '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”. Eldarad Med and Pro Medical have not filed 2025 (blank on the FY2025 tab).';
+ '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity), and its 2025 figures consolidate the group’s new Galați unit (IMASOFT Studio, CUI 37949730); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”. Eldarad Med and Pro Medical have not filed 2025 (blank on the FY2025 tab).';
 
 // ---------- init / full refresh ----------
 function refreshAll(){
