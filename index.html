@@ -60,6 +60,9 @@
   .tab:hover{border-color:#cbb9f0}
   .tab.active{background:var(--purple);color:#fff;border-color:var(--purple)}
   .tab .n{opacity:.7;font-weight:700;margin-left:3px}
+  .yrtabs{display:flex;gap:0;border:1px solid #cbb9f0;border-radius:999px;overflow:hidden}
+  .yrtabs .tab{border:none;border-radius:0;background:var(--card)}
+  .yrtabs .tab.active{background:var(--teal);color:#fff}
   .search{margin-left:auto;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;min-width:210px;outline:none;background:var(--card)}
   .search:focus{border-color:var(--purple)}
   /* table */
@@ -145,7 +148,7 @@
       <div class="logo">M</div>
       <div>
         <h1>Medima — M&A Pipeline</h1>
-        <div class="sub">Business Development Strategy 2027–2031 · FY2025 statutory data (ANAF) · all figures in RON</div>
+        <div class="sub">Business Development Strategy 2027–2031 · <span id="subYear">FY2025</span> statutory data (ANAF) · all figures in RON</div>
       </div>
     </div>
     <div class="pill">M&A Pipeline</div>
@@ -162,13 +165,17 @@
       <button class="tab" data-ty="single">Single-City <span class="n" id="cSingle"></span></button>
       <button class="tab" data-ty="network">Networks <span class="n" id="cNetw"></span></button>
     </div>
+    <div class="yrtabs" id="yrTabs" title="Switch the whole dashboard between fiscal years">
+      <button class="tab active" data-yr="2">FY2025</button>
+      <button class="tab" data-yr="1">FY2024</button>
+    </div>
     <input class="search" id="search" placeholder="Search company or city…">
   </div>
   </div><!-- /stickytop -->
 
   <div class="kpis">
     <div class="kpi"><div class="v" id="kTotal">—</div><div class="l">Total Pipeline</div><div class="d">Companies screened</div></div>
-    <div class="kpi"><div class="v" id="kGP">—</div><div class="l">Σ Gross Profit 2025</div><div class="d">Sum of profitable targets (RON)</div></div>
+    <div class="kpi"><div class="v" id="kGP">—</div><div class="l" id="kGPlabel">Σ Gross Profit 2025</div><div class="d">Sum of profitable targets (RON)</div></div>
     <div class="kpi"><div class="v" id="kNet">—</div><div class="l">Networks (multi-city)</div><div class="d" id="kNetD">single-city targets</div></div>
     <div class="kpi"><div class="v" id="kNoOv">—</div><div class="l">No-overlap targets</div><div class="d">No Medima presence</div></div>
     <div class="kpi"><div class="v">4</div><div class="l">Score Components</div><div class="d">Weighted 0–100 model</div></div>
@@ -178,21 +185,21 @@
     <div class="panel">
       <h2>Top 5 Networks (multi-city)</h2>
       <div class="ph">Composite score (1–100)</div>
-      <div class="chart-box"><canvas id="chNet"></canvas></div>
+      <div class="chart-box" id="boxNet"><canvas id="chNet"></canvas></div>
     </div>
     <div class="panel">
       <h2>Top 10 Single-City Companies</h2>
       <div class="ph">Composite score (1–100)</div>
-      <div class="chart-box"><canvas id="chSingle"></canvas></div>
+      <div class="chart-box" id="boxSingle"><canvas id="chSingle"></canvas></div>
     </div>
   </div>
 
   <details class="method" open>
     <summary>Scoring methodology — each component 0–100, weighted average <span class="chev">▾</span></summary>
     <div class="meth-grid">
-      <div class="meth-c"><div class="w">Gross Profit 2025 · 50%</div><div class="t">Profitability size</div><div class="x">Absolute 2025 gross profit (Profit brut), scored relative to the highest in the pipeline (= 100). Losses score 0. Prioritises profitable, sizeable targets.</div></div>
-      <div class="meth-c"><div class="w">Avg Revenue Growth · 20%</div><div class="t">Top-line momentum</div><div class="x">Average YoY revenue growth across 2023→24 and 2024→25. Mapped −10%→0, +50%→100.</div></div>
-      <div class="meth-c"><div class="w">Avg Gross-Profit Growth · 20%</div><div class="t">Profit momentum</div><div class="x">Average YoY gross-profit growth across 2023→24 and 2024→25 (positive-base years only).</div></div>
+      <div class="meth-c"><div class="w"><span id="methGpYear">Gross Profit 2025</span> · 50%</div><div class="t">Profitability size</div><div class="x">Absolute gross profit (Profit brut) for the selected year, scored relative to the highest in the pipeline (= 100). Losses score 0.</div></div>
+      <div class="meth-c"><div class="w">Avg Revenue Growth · 20%</div><div class="t">Top-line momentum</div><div class="x">Average YoY revenue growth across the available years up to the selected one. Mapped −10%→0, +50%→100.</div></div>
+      <div class="meth-c"><div class="w">Avg Gross-Profit Growth · 20%</div><div class="t">Profit momentum</div><div class="x">Average YoY gross-profit growth up to the selected year (positive-base years only).</div></div>
       <div class="meth-c"><div class="w">Debt Health · 10%</div><div class="t">Balance-sheet risk</div><div class="x">Total debt (DATORII) / gross profit. ≤2× excellent, 2–10× tapering, &gt;10× or a loss a red flag.</div></div>
     </div>
   </details>
@@ -219,13 +226,13 @@
 
   <div class="rec-head">
     <h2>Top M&A Recommendations — No Medima Overlap</h2>
-    <div class="ph">Highest priority: profitable single-city targets in cities where Medima has no presence (by 2025 composite score)</div>
+    <div class="ph">Highest priority: profitable single-city targets in cities where Medima has no presence (by selected-year composite score)</div>
   </div>
   <div class="recs" id="recs"></div>
 
   <div class="scn-head">
     <h2>Acquisition Scenarios — Path to ≥ 10M RON EBITDA (≈ 2M €) by end-2028</h2>
-    <div class="ph">Mandate: acquire <strong>≥ 2M € EBITDA (~10M RON)</strong> across 2027–2028 — no upper cap, the more the better. EBITDA is <strong>estimated as gross profit ÷ 0.7</strong> until per-company D&A + finance-cost add-backs are loaded. Two single-network anchors (ScanExpert, Dorna Medical) plus four portfolio builds.</div>
+    <div class="ph">Mandate: acquire <strong>≥ 2M € EBITDA (~10M RON)</strong> across 2027–2028 — no upper cap, the more the better. EBITDA is <strong>estimated as gross profit ÷ 0.7</strong> until per-company D&A + finance-cost add-backs are loaded. Scenario figures follow the selected fiscal year. Two single-network anchors (ScanExpert, Dorna Medical) plus four portfolio builds.</div>
   </div>
   <div class="tabs" id="scnTabs">
     <button class="tab active" data-scn="all">Compare all</button>
@@ -245,7 +252,7 @@
 <script>
 // Each company carries raw ANAF statutory data (RON) per year: y = [ [rev,grossProfit,debt] for 2023, 2024, 2025 ].
 // grossProfit = Profit brut (I16), or negative Pierdere bruta (I17). debt = DATORII (I7). null year = not filed.
-// Derived metrics (rev, ebt, margin, revG, ebtG, debt-ratio, score, rank) are computed below.
+// Derived metrics (rev, ebt, margin, revG, ebtG, debt-ratio, score, rank) are recomputed per selected year below.
 // cui = verified fiscal code (provenance). t: 'network' | 'single'. overlap: true/false. missing: no usable filing.
 const D = [
  // ---- NETWORKS (multi-city) ----
@@ -320,7 +327,7 @@ const D = [
 // ---------- helpers ----------
 const fmtN = v => v==null ? '—' : (Math.abs(v)>=1e6 ? (v/1e6).toFixed(1).replace('.0','')+'M' : Math.abs(v)>=1e3 ? Math.round(v/1e3)+'K' : ''+v);
 const fmtPct = v => v==null ? '<span class="muted2">–</span>' : `<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${v}%</span>`;
-const fmtDebt = (v,missing) => missing ? '—' : v==null ? '<span class="neg">neg.</span>' : v+'×';
+const fmtDebt = (v,na) => na ? '—' : v==null ? '<span class="neg">neg.</span>' : v+'×';
 const scoreColor = s => s>=60 ? '#0d9488' : s>=40 ? '#d4a017' : s>=25 ? '#e07a5f' : '#dc2626';
 // EBITDA model. Preferred per-company input is the D&A add-back: EBITDA = gross profit + D&A (d.da).
 // A company may instead carry an explicit ratio (d.ef = grossProfit/EBITDA). Where neither is
@@ -336,63 +343,67 @@ const ebitdaOf = d => {
 const ebMargin = d => (d && d.rev && ebitdaOf(d)!=null) ? ebitdaOf(d)/d.rev*100 : null;
 const pctOrDash = (v,dp=0) => v==null ? '—' : v.toFixed(dp)+'%';
 
-// ---------- derive metrics from raw ANAF yearly data (RON) ----------
+// ---------- year-aware metric computation ----------
+let currentYi = 2;                       // index into y[]: 0=2023, 1=2024, 2=2025
+const YEAR_OF = yi => 2023 + yi;
 function yoy(a,b){ return (a==null||b==null||b<=0) ? null : (a-b)/b*100; }
-D.forEach(d=>{
-  if(!d.y){ d.missing=true; d.rev=d.ebt=d.margin=d.revG=d.ebtG=d.debt=d.score=null; return; }
-  let li=-1; for(let i=d.y.length-1;i>=0;i--){ if(d.y[i] && d.y[i][0]!=null){ li=i; break; } }
-  if(li<0){ d.missing=true; d.rev=d.ebt=d.score=null; return; }
-  const L=d.y[li]; d.dataYear=2023+li;
-  d.rev=L[0]; d.ebt=L[1];
-  d.debt=(L[2]!=null && L[1]>0) ? +(L[2]/L[1]).toFixed(1) : null;
-  d.margin=(d.rev>0 && d.ebt!=null) ? +(d.ebt/d.rev*100).toFixed(1) : null;
-  const rg=[], eg=[];
-  for(let i=1;i<d.y.length;i++){ if(d.y[i]&&d.y[i-1]){ const r=yoy(d.y[i][0],d.y[i-1][0]); if(r!=null)rg.push(r); const e=yoy(d.y[i][1],d.y[i-1][1]); if(e!=null)eg.push(e); } }
-  d.revG=rg.length? +(rg.reduce((a,b)=>a+b,0)/rg.length).toFixed(1):null;
-  d.ebtG=eg.length? +(eg.reduce((a,b)=>a+b,0)/eg.length).toFixed(1):null;
-});
-const MAX_EBT=Math.max(...D.filter(d=>d.ebt!=null&&d.ebt>0).map(d=>d.ebt));
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
-D.forEach(d=>{
-  if(d.ebt==null||d.rev==null){ d.score=null; return; }
-  const ebtS=d.ebt<=0?0:clamp(d.ebt/MAX_EBT*100,0,100);
-  const rgS=d.revG==null?40:clamp((d.revG+10)/60*100,0,100);
-  const egS=d.ebtG==null?40:clamp((d.ebtG+10)/60*100,0,100);
-  let dbS;
-  if(d.debt==null) dbS=d.ebt<=0?0:25;
-  else if(d.debt<=2) dbS=100;
-  else if(d.debt<=5) dbS=100-(d.debt-2)/3*30;
-  else if(d.debt<=10) dbS=70-(d.debt-5)/5*40;
-  else dbS=clamp(30-(d.debt-10)*2,0,30);
-  d.score=+(0.5*ebtS+0.2*rgS+0.2*egS+0.1*dbS).toFixed(1);
-});
-['network','single'].forEach(t=>{
-  D.filter(d=>d.t===t).sort((a,b)=>(b.score==null?-1:b.score)-(a.score==null?-1:a.score)).forEach((d,i)=>d.r=i+1);
-});
-// ---------- KPI fills ----------
-(function(){
+
+function applyYear(yi){
+  currentYi = yi;
+  D.forEach(d=>{
+    if(!d.y || !d.y[yi] || d.y[yi][0]==null){ d.rev=d.ebt=d.margin=d.revG=d.ebtG=d.debt=d.score=null; return; }
+    const cur=d.y[yi];
+    d.rev=cur[0]; d.ebt=cur[1];
+    d.debt=(cur[2]!=null && cur[1]>0) ? +(cur[2]/cur[1]).toFixed(1) : null;
+    d.margin=(d.rev>0 && d.ebt!=null) ? +(d.ebt/d.rev*100).toFixed(1) : null;
+    const rg=[], eg=[];
+    for(let i=1;i<=yi;i++){ if(d.y[i]&&d.y[i-1]){ const r=yoy(d.y[i][0],d.y[i-1][0]); if(r!=null)rg.push(r); const e=yoy(d.y[i][1],d.y[i-1][1]); if(e!=null)eg.push(e); } }
+    d.revG=rg.length? +(rg.reduce((a,b)=>a+b,0)/rg.length).toFixed(1):null;
+    d.ebtG=eg.length? +(eg.reduce((a,b)=>a+b,0)/eg.length).toFixed(1):null;
+  });
+  const maxEbt=Math.max(1,...D.filter(d=>d.ebt!=null&&d.ebt>0).map(d=>d.ebt));
+  D.forEach(d=>{
+    if(d.ebt==null||d.rev==null){ d.score=null; return; }
+    const ebtS=d.ebt<=0?0:clamp(d.ebt/maxEbt*100,0,100);
+    const rgS=d.revG==null?40:clamp((d.revG+10)/60*100,0,100);
+    const egS=d.ebtG==null?40:clamp((d.ebtG+10)/60*100,0,100);
+    let dbS;
+    if(d.debt==null) dbS=d.ebt<=0?0:25;
+    else if(d.debt<=2) dbS=100;
+    else if(d.debt<=5) dbS=100-(d.debt-2)/3*30;
+    else if(d.debt<=10) dbS=70-(d.debt-5)/5*40;
+    else dbS=clamp(30-(d.debt-10)*2,0,30);
+    d.score=+(0.5*ebtS+0.2*rgS+0.2*egS+0.1*dbS).toFixed(1);
+  });
+  ['network','single'].forEach(t=>{
+    D.filter(d=>d.t===t).sort((a,b)=>(b.score==null?-1:b.score)-(a.score==null?-1:a.score)).forEach((d,i)=>d.r=i+1);
+  });
+}
+
+// ---------- KPIs ----------
+function setKPIs(){
   const setT=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
   const gp=D.filter(d=>d.ebt!=null&&d.ebt>0).reduce((s,d)=>s+d.ebt,0);
   setT('kTotal', D.length);
   setT('kGP', fmtN(gp)+' RON');
+  setT('kGPlabel', 'Σ Gross Profit '+YEAR_OF(currentYi));
   setT('kNet', D.filter(d=>d.t==='network').length);
   setT('kNetD', D.filter(d=>d.t==='single').length+' single-city targets');
   setT('kNoOv', D.filter(d=>d.overlap===false&&d.score!=null).length);
-})();
+}
+
+// ---------- year-dependent labels ----------
+function updateHeaders(){
+  const Y=YEAR_OF(currentYi);
+  const thRev=document.querySelector('thead th[data-k="rev"]'); if(thRev) thRev.textContent='Rev '+Y;
+  const thEbt=document.querySelector('thead th[data-k="ebt"]'); if(thEbt) thEbt.textContent='Gross Profit '+Y;
+  const sub=document.getElementById('subYear'); if(sub) sub.textContent='FY'+Y;
+  const mg=document.getElementById('methGpYear'); if(mg) mg.textContent='Gross Profit '+Y;
+}
 
 // ---------- charts ----------
-const topNet = D.filter(d=>d.t==='network'&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,5);
-const topSingle = D.filter(d=>d.t==='single'&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,10);
-function hbar(id,rows,color){
-  if(typeof Chart==='undefined'){fallbackBars(id,rows,color);return;}
-  new Chart(document.getElementById(id),{type:'bar',data:{labels:rows.map(r=>r.name),
-    datasets:[{data:rows.map(r=>r.score),backgroundColor:color,borderRadius:5,barThickness:rows.length>6?14:20}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-      tooltip:{callbacks:{label:c=>'Score '+c.parsed.x}}},
-      scales:{x:{beginAtZero:true,max:100,grid:{color:'#f0eef8'},ticks:{font:{size:10}}},
-              y:{grid:{display:false},ticks:{font:{size:10.5},color:'#444'}}}}});
-}
-// pure-HTML fallback if the Chart.js CDN is blocked (e.g. opened offline)
+const chartRefs={};
 function fallbackBars(id,rows,color){
   const cv=document.getElementById(id); const box=cv.parentElement;
   box.innerHTML=rows.map(r=>`<div style="display:flex;align-items:center;gap:8px;margin:7px 0;font-size:11.5px">
@@ -401,28 +412,46 @@ function fallbackBars(id,rows,color){
     <div style="width:34px;font-weight:700;color:${color}">${r.score}</div></div>`).join('');
   box.style.height='auto';
 }
-try{ hbar('chNet',topNet,'#6d28d9'); hbar('chSingle',topSingle,'#0d9488'); }catch(e){ console.error(e); }
+function drawChart(canvasId, boxId, rows, color){
+  const box=document.getElementById(boxId);
+  if(chartRefs[canvasId]){ try{chartRefs[canvasId].destroy();}catch(e){} delete chartRefs[canvasId]; }
+  box.style.height=''; box.innerHTML='<canvas id="'+canvasId+'"></canvas>';
+  if(typeof Chart==='undefined'){ fallbackBars(canvasId,rows,color); return; }
+  chartRefs[canvasId]=new Chart(document.getElementById(canvasId),{type:'bar',data:{labels:rows.map(r=>r.name),
+    datasets:[{data:rows.map(r=>r.score),backgroundColor:color,borderRadius:5,barThickness:rows.length>6?14:20}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>'Score '+c.parsed.x}}},
+      scales:{x:{beginAtZero:true,max:100,grid:{color:'#f0eef8'},ticks:{font:{size:10}}},
+              y:{grid:{display:false},ticks:{font:{size:10.5},color:'#444'}}}}});
+}
+function drawCharts(){
+  const topNet=D.filter(d=>d.t==='network'&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,5);
+  const topSingle=D.filter(d=>d.t==='single'&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,10);
+  try{ drawChart('chNet','boxNet',topNet,'#6d28d9'); drawChart('chSingle','boxSingle',topSingle,'#0d9488'); }catch(e){ console.error(e); }
+}
 
 // ---------- recommendations (dynamic: top no-overlap single-city by score) ----------
-const recsList = D.filter(d=>d.t==='single'&&d.overlap===false&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,8);
-document.getElementById('recs').innerHTML = recsList.map((d,i)=>`
-  <div class="rec">
-    <div class="rh"><div class="rn">${i+1}. ${d.name}</div><div class="stars">★★★</div></div>
-    <div class="city">${d.cities}</div>
-    <div class="stats">
-      <div><b>${fmtN(d.rev)}</b><span>Revenue</span></div>
-      <div><b>${pctOrDash(ebMargin(d),0)}</b><span>EBITDA mgn</span></div>
-      <div><b>${d.score}/100</b><span>Score</span></div>
-    </div>
-    <div class="meta">no overlap · gross profit ${fmtN(d.ebt)} RON</div>
-  </div>`).join('');
+function renderRecs(){
+  const recsList=D.filter(d=>d.t==='single'&&d.overlap===false&&d.score!=null).sort((a,b)=>b.score-a.score).slice(0,8);
+  document.getElementById('recs').innerHTML = recsList.map((d,i)=>`
+    <div class="rec">
+      <div class="rh"><div class="rn">${i+1}. ${d.name}</div><div class="stars">★★★</div></div>
+      <div class="city">${d.cities}</div>
+      <div class="stats">
+        <div><b>${fmtN(d.rev)}</b><span>Revenue</span></div>
+        <div><b>${pctOrDash(ebMargin(d),0)}</b><span>EBITDA mgn</span></div>
+        <div><b>${d.score}/100</b><span>Score</span></div>
+      </div>
+      <div class="meta">no overlap · gross profit ${fmtN(d.ebt)} RON</div>
+    </div>`).join('');
+}
 
 // ---------- acquisition scenarios ----------
 const TARGET_MIN = 10_000_000, TARGET_MAX = 20_000_000;   // RON. ≈ 2M € floor / 4M € band cap
 const SCN = [
- {tag:'0.1 · 1 deal · network', name:'ScanExpert anchor', desc:'Single buy of the pipeline’s top-scored network: 8 sites across Iași, Galați, Brașov +5. By far the largest single play — its 2025 gross profit alone clears the target several times over — though Medima already overlaps several of these cities.',
+ {tag:'0.1 · 1 deal · network', name:'ScanExpert anchor', desc:'Single buy of the pipeline’s top-scored network: 8 sites across Iași, Galați, Brașov +5. By far the largest single play — its gross profit alone clears the target several times over — though Medima already overlaps several of these cities.',
   deals:[['2027','Scanexpert']]},
- {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). Very high revenue with a thinner margin and elevated debt — but its 2025 gross profit has jumped enough to clear the floor on its own.',
+ {tag:'0.2 · 1 deal · network', name:'Dorna Medical anchor', desc:'Single buy of a 7-site no-overlap network (Vatra Dornei, Fălticeni, Rădăuți +4). Very high revenue with a thinner margin and elevated debt — its 2025 gross profit has grown enough to clear the floor on its own (in 2024 it falls short).',
   deals:[['2027','Dorna Medical']]},
  {tag:'2 deals · anchor', name:'Anchor', desc:'One premium București asset (Eureka) plus Atlas (Târgu Mureș) — a live deal in discussion. Clears the floor with the lowest deal count; highest concentration risk.',
   deals:[['2027','Eureka'],['2027','Atlas Imagistica','in talks']]},
@@ -436,7 +465,7 @@ const SCN = [
 function buildCard(s){
   let ebt=0, rev=0, ebitda=0;
   const rows = s.deals.map(([yr,n,note])=>{
-    const c=byName(n); const eb=ebitdaOf(c); ebt+=c.ebt; rev+=c.rev||0; ebitda+=eb;
+    const c=byName(n); const eb=ebitdaOf(c); ebt+=c.ebt||0; rev+=c.rev||0; ebitda+=(eb||0);
     const dm = c.rev ? (eb/c.rev*100).toFixed(1)+'%' : '—';
     return `<div class="deal"><span class="yr">${yr}</span>
       <div class="dn">${c.name}${note?` <span class="badge">${note}</span>`:''}<small>${c.cities.split(',')[0]} · ${c.overlap?'overlap':'no overlap'}</small></div>
@@ -459,7 +488,9 @@ function buildCard(s){
     </div></div>`;
 }
 const scnBox = document.getElementById('scns');
+let scnSel = 'all';
 function renderScn(sel){
+  scnSel = sel;
   if(sel==='all'){ scnBox.classList.remove('single'); scnBox.innerHTML = SCN.map(buildCard).join(''); }
   else { scnBox.classList.add('single'); scnBox.innerHTML = buildCard(SCN[+sel]); }
 }
@@ -467,7 +498,6 @@ document.querySelectorAll('#scnTabs .tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#scnTabs .tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); renderScn(b.dataset.scn);
 });
-renderScn('all');
 
 // ---------- table ----------
 let state={ov:'all',ty:'all',q:'',sort:'score',dir:-1};
@@ -498,6 +528,7 @@ function render(){
     return (x-y)*state.dir;
   });
   tbody.innerHTML=rows.map(d=>{
+    const na=d.rev==null;
     const ov=d.overlap==null?'<span class="ov na">—</span>':d.overlap?'<span class="ov yes">YES</span>':'<span class="ov no">NO</span>';
     const sc=d.score==null?'—':`<div class="score-cell"><div class="bar"><i style="width:${d.score}%;background:${scoreColor(d.score)}"></i></div><span style="color:${scoreColor(d.score)}">${d.score}</span></div>`;
     const ebtCls=d.ebt!=null&&d.ebt<0?'neg':'';
@@ -506,12 +537,12 @@ function render(){
       <td class="l co">${d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
       <td class="l cities">${d.cities}</td>
       <td>${d.loc}</td>
-      <td>${d.missing?'—':fmtN(d.rev)}</td>
-      <td class="${ebtCls}">${d.missing?'—':fmtN(d.ebt)}</td>
+      <td>${fmtN(d.rev)}</td>
+      <td class="${ebtCls}">${fmtN(d.ebt)}</td>
       <td>${pctOrDash(ebMargin(d),1)}</td>
-      <td>${d.missing?'—':fmtPct(d.revG)}</td>
-      <td>${d.missing?'—':fmtPct(d.ebtG)}</td>
-      <td>${fmtDebt(d.debt,d.missing)}</td>
+      <td>${na?'—':fmtPct(d.revG)}</td>
+      <td>${na?'—':fmtPct(d.ebtG)}</td>
+      <td>${fmtDebt(d.debt,na)}</td>
       <td>${sc}</td>
       <td>${ov}</td></tr>`;
   }).join('');
@@ -527,14 +558,29 @@ document.querySelectorAll('thead th').forEach(th=>th.onclick=()=>{
   document.querySelectorAll('thead th .ar').forEach(a=>a.remove());
   th.insertAdjacentHTML('beforeend',` <span class="ar">${state.dir<0?'▼':'▲'}</span>`);render();});
 
-counts();render();
+// ---------- year tabs ----------
+document.querySelectorAll('#yrTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#yrTabs .tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); currentYi=+b.dataset.yr; refreshAll();
+});
 
+// ---------- foot ----------
 document.getElementById('foot').innerHTML=
- 'Financials sourced from <strong>ANAF (Romanian Ministry of Finance)</strong> statutory filings, fiscal year 2025 where filed (otherwise latest available), in <strong>RON</strong>; each company verified by CUI. '+
+ 'Financials sourced from <strong>ANAF (Romanian Ministry of Finance)</strong> statutory filings for the selected fiscal year (use the FY2025 / FY2024 toggle), in <strong>RON</strong>; each company verified by CUI. '+
  '“Gross profit” = <em>Profit brut</em> (pre-tax result, ANAF indicator I16; losses shown negative). Debt = <em>DATORII</em> (I7). '+
- 'Score = weighted average of gross profit (50%, vs the pipeline maximum), avg revenue growth (20%), avg gross-profit growth (20%) and debt health (10%), recomputed in-page from the 2023–2025 data. '+
+ 'Score = weighted average of gross profit (50%, vs the pipeline maximum for that year), avg revenue growth (20%), avg gross-profit growth (20%) and debt health (10%), recomputed in-page. '+
  '<strong>EBITDA shown is an estimate</strong> (gross profit ÷ 0.7) pending per-company D&A + finance-cost add-backs. “N” prefix marks multi-city networks. '+
- '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”.';
+ '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”. Eldarad Med and Pro Medical have not filed 2025 (blank on the FY2025 tab).';
+
+// ---------- init / full refresh ----------
+function refreshAll(){
+  applyYear(currentYi);
+  setKPIs(); updateHeaders();
+  drawCharts(); renderRecs();
+  counts(); render();
+  renderScn(scnSel);
+}
+refreshAll();
 </script>
 </body>
 </html>
