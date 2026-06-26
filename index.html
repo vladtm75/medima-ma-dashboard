@@ -148,7 +148,7 @@
       <div class="logo">M</div>
       <div>
         <h1>Medima — M&A Pipeline</h1>
-        <div class="sub">Business Development Strategy 2027–2031 · <span id="subYear">FY2025</span> statutory data (ANAF) · all figures in RON</div>
+        <div class="sub">Business Development Strategy 2027–2031 · <span id="subYear">FY2025</span> statutory data (ANAF) · figures in <span id="subCur">RON</span></div>
       </div>
     </div>
     <div class="pill">M&A Pipeline</div>
@@ -168,6 +168,10 @@
     <div class="yrtabs" id="yrTabs" title="Switch the whole dashboard between fiscal years">
       <button class="tab active" data-yr="2">FY2025</button>
       <button class="tab" data-yr="1">FY2024</button>
+    </div>
+    <div class="yrtabs" id="curTabs" title="Switch currency (EUR via BNR rate at 1 Jan of the selected year)">
+      <button class="tab active" data-cur="RON">RON</button>
+      <button class="tab" data-cur="EUR">EUR</button>
     </div>
     <input class="search" id="search" placeholder="Search company or city…">
   </div>
@@ -346,6 +350,13 @@ const pctOrDash = (v,dp=0) => v==null ? '—' : v.toFixed(dp)+'%';
 // ---------- year-aware metric computation ----------
 let currentYi = 2;                       // index into y[]: 0=2023, 1=2024, 2=2025
 const YEAR_OF = yi => 2023 + yi;
+// ---- currency: BNR EUR/RON reference rate at 1 Jan of each year (last quote of prior year) ----
+const FX = {2024:4.9746, 2025:4.9741};
+let currency = 'RON';
+const rateNow = () => FX[YEAR_OF(currentYi)] || 1;
+const conv = v => v==null ? null : (currency==='EUR' ? v/rateNow() : v);
+const fmtMoney = v => fmtN(conv(v));
+const CUR = () => currency==='EUR' ? '€' : 'RON';
 function yoy(a,b){ return (a==null||b==null||b<=0) ? null : (a-b)/b*100; }
 const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
 
@@ -386,7 +397,7 @@ function setKPIs(){
   const setT=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
   const gp=D.filter(d=>d.ebt!=null&&d.ebt>0).reduce((s,d)=>s+d.ebt,0);
   setT('kTotal', D.length);
-  setT('kGP', fmtN(gp)+' RON');
+  setT('kGP', fmtMoney(gp)+' '+CUR());
   setT('kGPlabel', 'Σ Gross Profit '+YEAR_OF(currentYi));
   setT('kNet', D.filter(d=>d.t==='network').length);
   setT('kNetD', D.filter(d=>d.t==='single').length+' single-city targets');
@@ -400,6 +411,7 @@ function updateHeaders(){
   const thEbt=document.querySelector('thead th[data-k="ebt"]'); if(thEbt) thEbt.textContent='Gross Profit '+Y;
   const sub=document.getElementById('subYear'); if(sub) sub.textContent='FY'+Y;
   const mg=document.getElementById('methGpYear'); if(mg) mg.textContent='Gross Profit '+Y;
+  const sc=document.getElementById('subCur'); if(sc) sc.textContent = currency==='EUR' ? ('EUR @ '+rateNow().toFixed(4)) : 'RON';
 }
 
 // ---------- charts ----------
@@ -438,11 +450,11 @@ function renderRecs(){
       <div class="rh"><div class="rn">${i+1}. ${d.name}</div><div class="stars">★★★</div></div>
       <div class="city">${d.cities}</div>
       <div class="stats">
-        <div><b>${fmtN(d.rev)}</b><span>Revenue</span></div>
+        <div><b>${fmtMoney(d.rev)}</b><span>Revenue</span></div>
         <div><b>${pctOrDash(ebMargin(d),0)}</b><span>EBITDA mgn</span></div>
         <div><b>${d.score}/100</b><span>Score</span></div>
       </div>
-      <div class="meta">no overlap · gross profit ${fmtN(d.ebt)} RON</div>
+      <div class="meta">no overlap · gross profit ${fmtMoney(d.ebt)} ${CUR()}</div>
     </div>`).join('');
 }
 
@@ -469,21 +481,22 @@ function buildCard(s){
     const dm = c.rev ? (eb/c.rev*100).toFixed(1)+'%' : '—';
     return `<div class="deal"><span class="yr">${yr}</span>
       <div class="dn">${c.name}${note?` <span class="badge">${note}</span>`:''}<small>${c.cities.split(',')[0]} · ${c.overlap?'overlap':'no overlap'}</small></div>
-      <div class="de">${fmtN(eb)} EBITDA<small>${dm} margin</small></div></div>`;
+      <div class="de">${fmtMoney(eb)} EBITDA<small>${dm} margin</small></div></div>`;
   }).join('');
   const pct=Math.min(100,ebitda/TARGET_MAX*100);
   const tm = rev ? (ebitda/rev*100).toFixed(1)+'%' : '—';
   const n=s.deals.length, dl=`${n} deal${n>1?'s':''}`;
+  const floorLbl=fmtMoney(TARGET_MIN);
   let status;
-  if(ebitda<TARGET_MIN) status=`<div class="ok" style="color:var(--neg)">✗ ${fmtN(TARGET_MIN-ebitda)} short of the 10M floor · ${dl}</div>`;
-  else                  status=`<div class="ok">✓ ${fmtN(ebitda)} ≥ 10M floor · ${dl}</div>`;
+  if(ebitda<TARGET_MIN) status=`<div class="ok" style="color:var(--neg)">✗ ${fmtMoney(TARGET_MIN-ebitda)} short of the ${floorLbl} floor · ${dl}</div>`;
+  else                  status=`<div class="ok">✓ ${fmtMoney(ebitda)} ≥ ${floorLbl} floor · ${dl}</div>`;
   return `<div class="scn">
     <div class="sh"><span class="tag">${s.tag}</span><h3>${s.name}</h3><p>${s.desc}</p></div>
     <div class="deals">${rows}</div>
     <div class="tot">
-      <div class="big">${fmtN(ebitda)} <small>EBITDA (est.) · ${tm} margin · ${fmtN(ebt)} gross profit</small></div>
+      <div class="big">${fmtMoney(ebitda)} <small>EBITDA (est.) · ${tm} margin · ${fmtMoney(ebt)} gross profit</small></div>
       <div class="band"><i style="width:${pct}%"></i><span class="min"></span></div>
-      <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">10M floor</span><span>20M+ RON</span></div>
+      <div class="bl"><span>0</span><span style="color:#dc2626;font-weight:700">${floorLbl} floor</span><span>${fmtMoney(TARGET_MAX)}+ ${CUR()}</span></div>
       ${status}
     </div></div>`;
 }
@@ -537,8 +550,8 @@ function render(){
       <td class="l co">${d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
       <td class="l cities">${d.cities}</td>
       <td>${d.loc}</td>
-      <td>${fmtN(d.rev)}</td>
-      <td class="${ebtCls}">${fmtN(d.ebt)}</td>
+      <td>${fmtMoney(d.rev)}</td>
+      <td class="${ebtCls}">${fmtMoney(d.ebt)}</td>
       <td>${pctOrDash(ebMargin(d),1)}</td>
       <td>${na?'—':fmtPct(d.revG)}</td>
       <td>${na?'—':fmtPct(d.ebtG)}</td>
@@ -558,10 +571,14 @@ document.querySelectorAll('thead th').forEach(th=>th.onclick=()=>{
   document.querySelectorAll('thead th .ar').forEach(a=>a.remove());
   th.insertAdjacentHTML('beforeend',` <span class="ar">${state.dir<0?'▼':'▲'}</span>`);render();});
 
-// ---------- year tabs ----------
+// ---------- year + currency tabs ----------
 document.querySelectorAll('#yrTabs .tab').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('#yrTabs .tab').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); currentYi=+b.dataset.yr; refreshAll();
+});
+document.querySelectorAll('#curTabs .tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#curTabs .tab').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); currency=b.dataset.cur; refreshAll();
 });
 
 // ---------- foot ----------
@@ -569,7 +586,7 @@ document.getElementById('foot').innerHTML=
  'Financials sourced from <strong>ANAF (Romanian Ministry of Finance)</strong> statutory filings for the selected fiscal year (use the FY2025 / FY2024 toggle), in <strong>RON</strong>; each company verified by CUI. '+
  '“Gross profit” = <em>Profit brut</em> (pre-tax result, ANAF indicator I16; losses shown negative). Debt = <em>DATORII</em> (I7). '+
  'Score = weighted average of gross profit (50%, vs the pipeline maximum for that year), avg revenue growth (20%), avg gross-profit growth (20%) and debt health (10%), recomputed in-page. '+
- '<strong>EBITDA shown is an estimate</strong> (gross profit ÷ 0.7) pending per-company D&A + finance-cost add-backs. “N” prefix marks multi-city networks. '+
+ '<strong>EBITDA shown is an estimate</strong> (gross profit ÷ 0.7) pending per-company D&A + finance-cost add-backs. EUR figures use the BNR reference rate at 1 Jan of each year (FY2024 = 4.9746, FY2025 = 4.9741 RON/€). “N” prefix marks multi-city networks. '+
  '<strong>Data flags:</strong> M Imagistica figures cover the whole M Hospital group; “RMN Diagnostica / Med House” absorbs the former separate “Diagnostica” row (same legal entity); Teoclinik dormant; Publiconstruct, Novalife and Central Medical Galenus not resolved to a usable filing and shown as “—”. Eldarad Med and Pro Medical have not filed 2025 (blank on the FY2025 tab).';
 
 // ---------- init / full refresh ----------
