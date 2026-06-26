@@ -121,6 +121,9 @@
   .tag.perf{background:#d1fae5;color:#047857}
   .tag.sold{background:#fdecef;color:#be123c}
   .rec.soldrec{opacity:.72;border-top-color:#dc2626}
+  .rec .bundle{margin-top:8px;font-size:10.5px;color:var(--purple);background:#f4f1fc;border:1px solid var(--line);border-radius:7px;padding:6px 8px;line-height:1.4}
+  .rec .bundle b{color:var(--purple)}
+  .rf{color:var(--neg);cursor:help;border-bottom:1px dotted var(--neg)}
   /* info tooltip */
   .info{position:relative;display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#efeafc;color:var(--purple);font-size:12px;font-weight:800;font-style:italic;font-family:Georgia,serif;cursor:help;margin-left:9px;vertical-align:middle}
   .info .tip{position:absolute;top:26px;left:0;z-index:90;width:440px;max-width:86vw;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:12px;padding:14px 16px;font-size:11.5px;font-weight:400;font-style:normal;color:var(--ink);line-height:1.5;opacity:0;visibility:hidden;transform:translateY(-4px);transition:.15s;text-transform:none;letter-spacing:normal}
@@ -289,7 +292,7 @@
 const D = [
  // ---- NETWORKS (multi-city) ----
  {t:'network',name:'Scanexpert',cities:'Iași, Galați, Brașov +5',loc:8,overlap:true,cui:24158114,ef:0.8,y:[[36992156,7776362,43056349],[61357073,17302502,35260050],[87376181,27368484,49327882]]},
- {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,ef:0.8,y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
+ {t:'network',name:'Clinica Hipocrat (9 centre)',cities:'București – Pantelimon, Chișinău, Rahova +3',loc:6,overlap:true,cui:8272361,ef:0.8,redflag:'Red flag: declared only 1 employee at the Trade Registry (Reg. Com.) last year — inconsistent with a 9-centre network. Treat the reported figures with caution and verify.',y:[[44988143,10086063,5526529],[55661374,13896635,20674617],[65605612,28153941,26143233]]},
  {t:'network',name:'Memormed',cities:'București – Unirii, Bd. A.I. Cuza, Cotroceni +2',loc:5,overlap:true,flag:'Outpatients',cui:23052971,y:[[22051094,1832111,7220046],[29821469,2741582,5337567],[32108322,1493228,11853536]]},
  {t:'network',name:'Dorna Medical',cities:'Vatra Dornei, Fălticeni, Rădăuți +4',loc:7,overlap:false,cui:15978905,y:[[61886645,291222,22233897],[79157281,1660680,43835261],[93150095,9680943,36846145]]},
  {t:'network',name:'Raze Medical Center',cities:'Oradea',loc:2,overlap:true,cui:45331268,y:[[1584041,-210068,1072960],[3809728,650397,536137],[7702192,533624,2831605]]},
@@ -460,7 +463,7 @@ function updateHeaders(){
 
 // ---------- recommendations (curated pipeline targets) ----------
 const RECS = [
- {n:'Atlas Imagistica', tag:'In talks', cls:'talk', note:'In active discussions · bundled with Krauss Klinik (teleradiology, not sold separately)'},
+ {n:'Atlas Imagistica', tag:'In talks', cls:'talk', bundle:'Krauss Klinik', note:'In active discussions with the owners'},
  {n:'Dorna Medical', tag:'In talks', cls:'talk', note:'In active discussions with the owners'},
  {n:'Apex Imagistic', tag:'In talks', cls:'talk', note:'Discussions already underway · Suceava'},
  {n:'Romrad', tag:'New market', cls:'entry', note:'Want to enter Drobeta-Turnu Severin'},
@@ -479,10 +482,13 @@ function renderRecs(){
     const fin = d.rev!=null
       ? `<div class="stats"><div><b>${fmtMoney(d.ebitda)}</b><span>EST. EBITDA</span></div><div><b>${pctOrDash(ebMargin(d),0)}</b><span>EST. EBITDA mgn</span></div></div>`
       : '';
+    const b = r.bundle ? byName(r.bundle) : null;
+    const bundleLine = b ? `<div class="bundle">+ ${b.name} (teleradiology, bundled) · EST. EBITDA <b>${fmtMoney(b.ebitda)}</b> → package <b>${fmtMoney((d.ebitda||0)+(b.ebitda||0))}</b></div>` : '';
     return `<div class="rec${r.cls==='sold'?' soldrec':''}">
       <div class="rh"><div class="rn">${i+1}. ${d.name}</div><span class="tag ${r.cls}">${r.tag}</span></div>
       <div class="city">${d.cities}${d.overlap?' · Medima present':''}</div>
       ${fin}
+      ${bundleLine}
       <div class="meta">${r.note}</div>
     </div>`;
   }).join('');
@@ -577,7 +583,7 @@ function render(){
     const ebm=ebMethod(d);
     return `<tr>
       <td class="l rank">${d.t==='network'?'N':''}${d.r||''}</td>
-      <td class="l co">${d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
+      <td class="l co">${d.redflag?`<span class="rf" title="${d.redflag}">${d.name} ⚠</span>`:d.name}${d.flag?`<span class="badge">${d.flag}</span>`:''}</td>
       <td class="l cities">${d.cities}</td>
       <td>${d.loc}</td>
       <td>${fmtMoney(d.rev)}</td>
